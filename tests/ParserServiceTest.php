@@ -58,7 +58,7 @@ class ParserServiceTest extends AbstractTestCase
      */
     public function shouldNotBreakWhenTryingToParseATrait()
     {
-        $fixture = __DIR__ . '/fixtures/SomeTrait.php';
+        $fixture = __DIR__ . '/Fixtures/SomeTrait.php';
         $content = $this->parserService->getInterfaceContent($fixture);
 
         $this->assertNull($content);
