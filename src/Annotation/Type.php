@@ -11,7 +11,7 @@ namespace Paneon\PhpToTypeScript\Annotation;
 class Type
 {
     /**
-     * @var string
+     * @var array
      */
     protected $type;
 

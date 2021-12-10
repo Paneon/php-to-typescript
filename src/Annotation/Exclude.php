@@ -11,7 +11,7 @@ namespace Paneon\PhpToTypeScript\Annotation;
 class Exclude
 {
     /**
-     * @var string
+     * @var array
      */
     protected $type;
 

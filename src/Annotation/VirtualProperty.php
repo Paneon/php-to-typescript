@@ -11,7 +11,7 @@ namespace Paneon\PhpToTypeScript\Annotation;
 class VirtualProperty
 {
     /**
-     * @var string
+     * @var array
      */
     protected $type;
 

@@ -55,7 +55,6 @@ class PhpDocParser
             case 'null':
                 if ($includeTypeNullable) {
                     return 'null';
-                    break;
                 }
                 return null;
             case 'array':

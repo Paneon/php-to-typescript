@@ -28,5 +28,17 @@
     "require-dev": {
         "phpstan/phpstan": "^1.2",
         "phpunit/phpunit": "^8"
+    },
+    "scripts": {
+        "build": [
+            "@lint",
+            "@test"
+        ],
+        "lint": [
+            "@php vendor/bin/phpstan analyze src --level=5"
+        ],
+        "test": [
+            "vendor/bin/phpunit"
+        ]
     }
 }
