@@ -159,6 +159,6 @@ class ParserServiceTest extends AbstractTestCase
 
     private function getDefaultFixtureFile(): string
     {
-        return __DIR__ . '/fixtures/Person.php';
+        return __DIR__ . '/Fixtures/Person.php';
     }
 }
