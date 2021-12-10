@@ -12,8 +12,7 @@ class ParserServiceTest extends AbstractTestCase
      */
     public function triggersOnClassesWithCustomAnnotation()
     {
-        $fixture = __DIR__ . '/fixtures/Person.php';
-        $content = $this->parserService->getInterfaceContent($fixture);
+        $content = $this->loadFixture();
 
         $this->assertNotNull($content);
     }
@@ -23,8 +22,7 @@ class ParserServiceTest extends AbstractTestCase
      */
     public function doesntContainExcludedProperties()
     {
-        $fixture = __DIR__ . '/fixtures/Person.php';
-        $content = $this->parserService->getInterfaceContent($fixture);
+        $content = $this->loadFixture();
 
         $this->assertStringNotContainsString('excluded', $content);
     }
@@ -34,8 +32,7 @@ class ParserServiceTest extends AbstractTestCase
      */
     public function containsVirtualProperties()
     {
-        $fixture = __DIR__ . '/fixtures/Person.php';
-        $content = $this->parserService->getInterfaceContent($fixture);
+        $content = $this->loadFixture();
 
         $this->assertStringContainsString('hasSomeValue: boolean;', $content);
         $this->assertStringContainsString('virtualWithReturnType: number', $content);
@@ -46,7 +43,7 @@ class ParserServiceTest extends AbstractTestCase
      */
     public function addsPrefixAndSuffixToClassInstances()
     {
-        $fixture = __DIR__ . '/fixtures/Person.php';
+        $fixture = $this->getDefaultFixtureFile();
 
         $this->parserService->setPrefix('I');
         $this->parserService->setSuffix('Interface');
@@ -72,7 +69,7 @@ class ParserServiceTest extends AbstractTestCase
      */
     public function convertsMixedToArray()
     {
-        $fixture = __DIR__ . '/fixtures/Person.php';
+        $fixture = $this->getDefaultFixtureFile();
         $content = $this->parserService->getInterfaceContent($fixture);
 
         $this->assertStringContainsString('mixed: any;', $content);
@@ -84,7 +81,7 @@ class ParserServiceTest extends AbstractTestCase
      */
     public function respectsTypeScriptTypeAnnotation()
     {
-        $fixture = __DIR__ . '/fixtures/Person.php';
+        $fixture = $this->getDefaultFixtureFile();
         $content = $this->parserService->getInterfaceContent($fixture);
 
         $this->assertStringContainsString('someInterface: ClassImplementingInterface1|ClassImplementingInterface2;', $content);
@@ -96,7 +93,7 @@ class ParserServiceTest extends AbstractTestCase
      */
     public function containsPrefixBeforeInterfaceName()
     {
-        $fixture = __DIR__ . '/fixtures/Person.php';
+        $fixture = $this->getDefaultFixtureFile();
         $this->parserService->setPrefix('I');
         $content = $this->parserService->getInterfaceContent($fixture);
 
@@ -108,7 +105,7 @@ class ParserServiceTest extends AbstractTestCase
      */
     public function supportsDateTime()
     {
-        $fixture = __DIR__ . '/fixtures/Person.php';
+        $fixture = $this->getDefaultFixtureFile();
         $this->parserService->setPrefix('I');
         $content = $this->parserService->getInterfaceContent($fixture);
 
@@ -121,7 +118,7 @@ class ParserServiceTest extends AbstractTestCase
      */
     public function containsSuffixBeforeInterfaceName()
     {
-        $fixture = __DIR__ . '/fixtures/Person.php';
+        $fixture = $this->getDefaultFixtureFile();
         $this->parserService->setSuffix('Interface');
         $content = $this->parserService->getInterfaceContent($fixture);
 
@@ -133,23 +130,35 @@ class ParserServiceTest extends AbstractTestCase
      */
     public function supportsNullTypes()
     {
-        $fixture = __DIR__ . '/fixtures/Person.php';
+        $fixture = $this->getDefaultFixtureFile();
         $this->parserService->setPrefix('I');
         $this->parserService->setIncludeTypeNullable(true);
         $content = $this->parserService->getInterfaceContent($fixture);
 
         $this->assertStringContainsString('middleName: string|null', $content);
     }
+
     /**
      * @test
      */
     public function supportsNullTypesDisabled()
     {
-        $fixture = __DIR__ . '/fixtures/Person.php';
+        $fixture = $this->getDefaultFixtureFile();
         $this->parserService->setPrefix('I');
         $this->parserService->setIncludeTypeNullable(false);
         $content = $this->parserService->getInterfaceContent($fixture);
 
         $this->assertStringNotContainsString('middleName: string|null', $content);
+    }
+
+    private function loadFixture(): ?string
+    {
+        $fixture = $this->getDefaultFixtureFile();
+        return $this->parserService->getInterfaceContent($fixture);
+    }
+
+    private function getDefaultFixtureFile(): string
+    {
+        return __DIR__ . '/fixtures/Person.php';
     }
 }
