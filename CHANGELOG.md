@@ -1,6 +1,6 @@
 Changelog
 ======
 
-# 0.1.0
+# 1.0.0
 
-- Setup monorepo for Parser and Symfony Bundle
+- Initial Release of the Parser
