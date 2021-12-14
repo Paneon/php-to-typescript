@@ -8,11 +8,15 @@ class PhpDocParser
     public const PROPERTY_TYPE_VARIABLE = 'VARIABLE';
     public const PROPERTY_TYPE_METHOD = 'METHOD';
 
-    public function parseDocComment(string $phpDoc, $type = self::PROPERTY_TYPE_VARIABLE, $includeTypeNullable = false): string
-    {
+    public function parseDocComment(
+        string $phpDoc,
+        $type = self::PROPERTY_TYPE_VARIABLE,
+        $includeTypeNullable = false
+    ): string {
         $varRegex = '/@var\s+(?P<var>[^\s*]+)?/';
         $methodRegex = '/@return\s+(?P<var>[^\s*]+)?/';
         $typeRegex = '/(?P<type>[^\[\]\s]+)(?P<array>\[\])?/i';
+        $psalmTypeRegex = '/array\<(?P<psalmType>[^\s*]+)?\>/i';
 
         if (empty($phpDoc)) {
             return 'any';
@@ -28,7 +32,12 @@ class PhpDocParser
             foreach ($types as $phpType) {
                 $tsType = $phpType;
 
-                if (preg_match($typeRegex, $phpType, $typeMatch)) {
+                if (preg_match($psalmTypeRegex, $phpType, $typeMatch)) {
+                    $tsType = $this->getTypeEquivalent($typeMatch['psalmType'], $includeTypeNullable);
+                    if ($tsType !== null) {
+                        $tsType .= '[]';
+                    }
+                } else if (preg_match($typeRegex, $phpType, $typeMatch)) {
                     $tsType = $this->getTypeEquivalent($typeMatch['type'], $includeTypeNullable);
                     if ($tsType === null) {
                         continue;
