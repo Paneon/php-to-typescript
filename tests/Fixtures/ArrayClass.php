@@ -8,30 +8,8 @@ use Paneon\PhpToTypeScript\Annotation as PTS;
 /**
  * @PTS\TypeScriptInterface
  */
-class Person
+class ArrayClass
 {
-    use SomeTrait;
-
-    /**
-     * @var string
-     */
-    public $firstName;
-
-    /**
-     * @var string|null
-     */
-    public $middleName;
-
-    /**
-     * @var string
-     */
-    public $lastName;
-
-    /**
-     * @var int
-     */
-    public $age;
-
     /**
      * @PTS\Exclude()
      *
@@ -45,11 +23,6 @@ class Person
     protected $mixedArray;
 
     /**
-     * @var SomeClass
-     */
-    protected $someClass;
-
-    /**
      * @var SomeClass[]
      */
     protected $classCollection;
@@ -60,26 +33,7 @@ class Person
     protected $mixed;
 
     /**
-     * @var DateTime
-     */
-    protected $dateTime;
-
-    /**
-     * @var \DateTime
-     */
-    protected $dateTime2;
-
-    /**
-     * @PTS\Type("ClassImplementingInterface1|ClassImplementingInterface2")
-     *
-     * @var SomeInterface
-     */
-    protected $someInterface;
-
-    /**
      * @PTS\Type("ClassImplementingInterface1[]|ClassImplementingInterface2[]")
-     *
-     * @var SomeInterface[]
      */
     protected $someInterfaceArray;
 
@@ -92,11 +46,11 @@ class Person
 
     /**
      * @PTS\VirtualProperty()
-     * @return bool
+     * @return bool[]
      */
     public function hasSomeValue()
     {
-        return true;
+        return [true];
     }
 
     /**

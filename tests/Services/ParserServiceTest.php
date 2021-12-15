@@ -1,7 +1,8 @@
 <?php
 
-namespace Paneon\PhpToTypeScript\Tests;
+namespace Paneon\PhpToTypeScript\Tests\Services;
 
+use Paneon\PhpToTypeScript\Tests\AbstractTestCase;
 use ReflectionException;
 
 class ParserServiceTest extends AbstractTestCase
@@ -58,23 +59,12 @@ class ParserServiceTest extends AbstractTestCase
      */
     public function shouldNotBreakWhenTryingToParseATrait()
     {
-        $fixture = __DIR__ . '/Fixtures/SomeTrait.php';
+        $fixture = __DIR__ . '/../Fixtures/SomeTrait.php';
         $content = $this->parserService->getInterfaceContent($fixture);
 
         $this->assertNull($content);
     }
 
-    /**
-     * @test
-     */
-    public function convertsMixedToArray()
-    {
-        $fixture = $this->getDefaultFixtureFile();
-        $content = $this->parserService->getInterfaceContent($fixture);
-
-        $this->assertStringContainsString('mixed: any;', $content);
-        $this->assertStringContainsString('mixedArray: any[];', $content);
-    }
 
     /**
      * @test
@@ -159,6 +149,6 @@ class ParserServiceTest extends AbstractTestCase
 
     private function getDefaultFixtureFile(): string
     {
-        return __DIR__ . '/Fixtures/Person.php';
+        return __DIR__ . '/../Fixtures/Person.php';
     }
 }
