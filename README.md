@@ -1,6 +1,8 @@
 PHP To TypeScript Parser
 ======
 
+[![Build](https://github.com/Paneon/php-to-typescript/actions/workflows/main.yml/badge.svg)](https://github.com/Paneon/php-to-typescript/actions/workflows/main.yml)
+
 A library which can be used to create TypeScript classes/interfaces based on PHP classes. Main use case is in a scenario where a PHP backend is consumed by a JavaScript/TypeScript frontend and serialized DTOs are consumed.
 
 TypeScript is a superscript of JavaScript that adds strong typing and other features on top of JS. 
