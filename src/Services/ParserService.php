@@ -15,7 +15,9 @@ use PhpParser\ParserFactory;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
+use ReflectionMethod;
 use ReflectionNamedType;
+use ReflectionProperty;
 
 class ParserService
 {
@@ -114,7 +116,7 @@ class ParserService
 
     private function hasInterfaceAnnotation(ReflectionClass $reflectionClass)
     {
-        return $this->reader->getClassAnnotation($reflectionClass, TypeScriptInterface::class);
+        return $reflectionClass->getAttributes(TypeScriptInterface::class) || $this->reader->getClassAnnotation($reflectionClass, TypeScriptInterface::class);
     }
 
     public function buildInterface(ReflectionClass $class)
@@ -137,17 +139,13 @@ class ParserService
 
         foreach ($properties as $property) {
             $this->logger->debug('- Property: ' . $property->getName());
-            $isExcluded = $this->reader->getPropertyAnnotation($property, Exclude::class);
 
-            /** @var Type|null $hasTypeScriptType */
-            $hasTypeScriptType = $this->reader->getPropertyAnnotation($property, Type::class);
-
-            if ($isExcluded) {
+            if ($this->isExcluded($property)) {
                 $this->logger->debug('=> isExcluded');
                 continue;
             }
 
-            if ($hasTypeScriptType) {
+            if ($this->getTypeScriptType($property)) {
                 $type = $hasTypeScriptType->getType();
                 $this->logger->debug('- Overwrite Type: ' . $type);
             } else {
@@ -160,9 +158,8 @@ class ParserService
 
         foreach ($methods as $method) {
             $this->logger->debug('- Method: ' . $method->getName());
-            $isVirtualProperty = $this->reader->getMethodAnnotation($method, VirtualProperty::class);
 
-            if (!$isVirtualProperty) {
+            if (!$this->isVirtualProperty($method)) {
                 $this->logger->debug('=> Skip: is no virtual property');
                 continue;
             }
@@ -179,6 +176,25 @@ class ParserService
             $newProp = new DeclareInterfaceProperty($method->getName(), $type);
             $this->currentInterface->addProperty($newProp);
         }
+    }
+
+    public function getTypeScriptType(ReflectionProperty $reflectionProperty): ?Type
+    {
+        $attr = $reflectionProperty->getAttributes(Type::class);
+        return $attr
+            || $this->reader->getPropertyAnnotation($reflectionProperty, Type::class);
+    }
+
+    public function isExcluded(ReflectionProperty $reflectionProperty): bool
+    {
+        return $reflectionProperty->getAttributes(Exclude::class)
+            || $this->reader->getPropertyAnnotation($reflectionProperty, Exclude::class);
+    }
+
+    public function isVirtualProperty(ReflectionMethod $reflectionMethod): bool
+    {
+        return $reflectionMethod->getAttributes(VirtualProperty::class)
+            || $this->reader->getMethodAnnotation($reflectionMethod, VirtualProperty::class);
     }
 
     public function setIndent($indent): ParserService
@@ -205,7 +221,7 @@ class ParserService
         return $this;
     }
 
-    public function detectPropertyType(\ReflectionProperty $property): string
+    public function detectPropertyType(ReflectionProperty $property): string
     {
         $phpDoc = $property->getDocComment();
         $type = 'any';

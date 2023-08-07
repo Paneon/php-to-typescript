@@ -2,18 +2,18 @@
 
 namespace Paneon\PhpToTypeScript\Annotation;
 
+use Attribute;
+
 /**
  * Class TypeScriptInterface
  *
  * @Annotation
  * @Target("METHOD")
  */
+#[Attribute(flags: Attribute::TARGET_METHOD)]
 class VirtualProperty
 {
-    /**
-     * @var array
-     */
-    protected $type;
+    protected array $type;
 
     public function __construct($custom = null) {
         $this->type = $custom;

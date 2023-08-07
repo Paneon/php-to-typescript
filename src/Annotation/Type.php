@@ -2,20 +2,20 @@
 
 namespace Paneon\PhpToTypeScript\Annotation;
 
+use Attribute;
+
 /**
  * Class TypeScriptInterface
  *
  * @Annotation
  * @Target("PROPERTY")
  */
+#[Attribute(flags: Attribute::TARGET_PROPERTY)]
 class Type
 {
-    /**
-     * @var array
-     */
-    protected $type;
+    protected array $type;
 
-    public function __construct($custom = null) {
+    public function __construct(mixed $custom = null) {
         $this->type = $custom;
     }
 

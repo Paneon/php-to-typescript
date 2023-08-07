@@ -2,18 +2,18 @@
 
 namespace Paneon\PhpToTypeScript\Annotation;
 
+use Attribute;
+
 /**
  * Class TypeScriptInterface
  *
  * @Annotation
  * @Target("PROPERTY")
  */
+#[Attribute(flags: Attribute::TARGET_PROPERTY)]
 class Exclude
 {
-    /**
-     * @var array
-     */
-    protected $type;
+    protected array $type;
 
     public function __construct($custom = null) {
         $this->type = $custom;
