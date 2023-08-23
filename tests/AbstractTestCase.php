@@ -6,6 +6,7 @@ use Doctrine\Common\Annotations\AnnotationException;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\DocParser;
 use Exception;
+use Monolog\Handler\PHPConsoleHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use Paneon\PhpToTypeScript\Parser\PhpDocParser;
@@ -35,7 +36,18 @@ abstract class AbstractTestCase extends TestCase
     protected function createLogger(): Logger
     {
         $logger = new Logger('test');
-        $logger->pushHandler(new StreamHandler(__DIR__ . '/../var/dev/test.log'));
+
+        if(in_array('-vvv', $_SERVER['argv'], true)){
+            $logger->pushHandler(new StreamHandler('php://stdout', Logger::DEBUG));
+        }
+        else if(in_array('-vv', $_SERVER['argv'], true)){
+            $logger->pushHandler(new StreamHandler('php://stdout', Logger::INFO));
+        }
+        else if(in_array('-v', $_SERVER['argv'], true)){
+            $logger->pushHandler(new StreamHandler('php://stdout', Logger::WARNING));
+        }
+
+        $logger->pushHandler(new StreamHandler(__DIR__ . '/../var/dev/test.log', Logger::DEBUG));
 
         return $logger;
     }

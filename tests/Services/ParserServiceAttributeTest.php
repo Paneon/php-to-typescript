@@ -3,34 +3,28 @@
 namespace Paneon\PhpToTypeScript\Tests\Services;
 
 use Paneon\PhpToTypeScript\Tests\AbstractTestCase;
+use Paneon\PhpToTypeScript\Tests\Fixtures\AttributeClass;
 use ReflectionException;
+use ReflectionProperty;
 
-class ParserServiceTest extends AbstractTestCase
+class ParserServiceAttributeTest extends AbstractTestCase
 {
 
-    /**
-     * @test
-     */
-    public function triggersOnClassesWithCustomAnnotation()
+    public function testTriggersOnClassesWithCustomAnnotation()
     {
         $content = $this->loadFixture();
+
         $this->assertNotNull($content);
     }
 
-    /**
-     * @test
-     */
-    public function doesntContainExcludedProperties()
+    public function testDoesntContainExcludedProperties()
     {
         $content = $this->loadFixture();
 
         $this->assertStringNotContainsString('excluded', $content);
     }
 
-    /**
-     * @test
-     */
-    public function containsVirtualProperties()
+    public function testContainsVirtualProperties()
     {
         $content = $this->loadFixture();
 
@@ -38,10 +32,7 @@ class ParserServiceTest extends AbstractTestCase
         $this->assertStringContainsString('virtualWithReturnType: number', $content);
     }
 
-    /**
-     * @test
-     */
-    public function addsPrefixAndSuffixToClassInstances()
+    public function testAddsPrefixAndSuffixToClassInstances()
     {
         $fixture = $this->getDefaultFixtureFile();
 
@@ -53,10 +44,14 @@ class ParserServiceTest extends AbstractTestCase
         $this->assertStringContainsString('someClass: ISomeClassInterface;', $content);
     }
 
-    /**
-     * @test
-     */
-    public function shouldNotBreakWhenTryingToParseATrait()
+    public function testGetType()
+    {
+        $reflectionProperty = new ReflectionProperty(AttributeClass::class, "someInterface");
+        $type = $this->parserService->getTypeScriptType($reflectionProperty);
+        $this->assertStringContainsString('ClassImplementingInterface1|ClassImplementingInterface2', $type->getType());
+    }
+
+    public function testShouldNotBreakWhenTryingToParseATrait()
     {
         $fixture = __DIR__ . '/../Fixtures/SomeTrait.php';
         $content = $this->parserService->getInterfaceContent($fixture);
@@ -64,11 +59,7 @@ class ParserServiceTest extends AbstractTestCase
         $this->assertNull($content);
     }
 
-
-    /**
-     * @test
-     */
-    public function respectsTypeScriptTypeAnnotation()
+    public function testRespectsTypeScriptTypeAnnotation()
     {
         $fixture = $this->getDefaultFixtureFile();
         $content = $this->parserService->getInterfaceContent($fixture);
@@ -77,22 +68,16 @@ class ParserServiceTest extends AbstractTestCase
         $this->assertStringContainsString('someInterfaceArray: ClassImplementingInterface1[]|ClassImplementingInterface2[];', $content);
     }
 
-    /**
-     * @test
-     */
-    public function containsPrefixBeforeInterfaceName()
+    public function testContainsPrefixBeforeInterfaceName()
     {
         $fixture = $this->getDefaultFixtureFile();
         $this->parserService->setPrefix('I');
         $content = $this->parserService->getInterfaceContent($fixture);
 
-        $this->assertStringContainsString('interface IPerson', $content);
+        $this->assertStringContainsString('interface IAttributeClass', $content);
     }
 
-    /**
-     * @test
-     */
-    public function supportsDateTime()
+    public function testSupportsDateTime()
     {
         $fixture = $this->getDefaultFixtureFile();
         $this->parserService->setPrefix('I');
@@ -102,22 +87,16 @@ class ParserServiceTest extends AbstractTestCase
         $this->assertStringContainsString('dateTime2: string', $content);
     }
 
-    /**
-     * @test
-     */
-    public function containsSuffixBeforeInterfaceName()
+    public function testContainsSuffixBeforeInterfaceName()
     {
         $fixture = $this->getDefaultFixtureFile();
         $this->parserService->setSuffix('Interface');
         $content = $this->parserService->getInterfaceContent($fixture);
 
-        $this->assertStringContainsString('interface PersonInterface', $content);
+        $this->assertStringContainsString('interface AttributeClassInterface', $content);
     }
 
-    /**
-     * @test
-     */
-    public function supportsNullTypes()
+    public function testSupportsNullTypes()
     {
         $fixture = $this->getDefaultFixtureFile();
         $this->parserService->setPrefix('I');
@@ -127,10 +106,7 @@ class ParserServiceTest extends AbstractTestCase
         $this->assertStringContainsString('middleName: string|null', $content);
     }
 
-    /**
-     * @test
-     */
-    public function supportsNullTypesDisabled()
+    public function testSupportsNullTypesDisabled()
     {
         $fixture = $this->getDefaultFixtureFile();
         $this->parserService->setPrefix('I');
@@ -148,6 +124,6 @@ class ParserServiceTest extends AbstractTestCase
 
     private function getDefaultFixtureFile(): string
     {
-        return __DIR__ . '/../Fixtures/Person.php';
+        return __DIR__ . '/../Fixtures/AttributeClass.php';
     }
 }
