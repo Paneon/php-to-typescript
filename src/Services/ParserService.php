@@ -2,7 +2,7 @@
 
 namespace Paneon\PhpToTypeScript\Services;
 
-use Doctrine\Common\Annotations\Reader;
+use Doctrine\Common\Annotations\AnnotationReader;
 use Paneon\PhpToTypeScript\Annotation\Exclude;
 use Paneon\PhpToTypeScript\Annotation\Type;
 use Paneon\PhpToTypeScript\Annotation\TypeScriptInterface;
@@ -25,43 +25,27 @@ class ParserService
 
     protected $fs;
 
-    /**
-     * @var Reader
-     */
-    protected $reader;
-
-    /**
-     * @var LoggerInterface
-     */
-    protected $logger;
 
     protected $currentInterface;
 
-    /**
-     * @var PhpDocParser
-     */
-    protected $docParser;
+    protected string $prefix = '';
 
-    protected $prefix;
+    protected string $suffix = '';
 
-    protected $suffix;
+    protected int $indent = 2;
 
-    protected $indent;
+    protected bool $includeTypeNullable = false;
 
-    protected $includeTypeNullable;
-
-    public function __construct(Reader $reader, LoggerInterface $logger, PhpDocParser $docParser)
+    public function __construct(protected AnnotationReader $reader, protected LoggerInterface $logger, protected PhpDocParser $docParser)
     {
         $this->parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
-        $this->reader = $reader;
-        $this->logger = $logger;
-        $this->docParser = $docParser;
     }
 
     public function getInterfaceContent(
         string $sourceFileName,
-        $requireAnnotation = true
-    ): ?string {
+               $requireAnnotation = true
+    ): ?string
+    {
         $stmts = $this->getStatements($sourceFileName);
         $fullClassName = $this->getFullyQualifiedClassName($stmts, $sourceFileName);
 
@@ -138,18 +122,18 @@ class ParserService
         $methods = $class->getMethods();
 
         foreach ($properties as $property) {
-            $this->logger->debug('- Property: ' . $property->getName());
+            $type = $this->detectPropertyType($property);
+            $this->logger->info('- Property: ' . $property->getName() . ': ' . $type);
 
             if ($this->isExcluded($property)) {
                 $this->logger->debug('=> isExcluded');
                 continue;
             }
 
-            if ($this->getTypeScriptType($property)) {
-                $type = $hasTypeScriptType->getType();
-                $this->logger->debug('- Overwrite Type: ' . $type);
-            } else {
-                $type = $this->detectPropertyType($property);
+            $overwriteType = $this->getTypeScriptType($property);
+            if ($overwriteType) {
+                $this->logger->debug('- Overwrite Type: ' . $overwriteType->getType());
+                $type = $overwriteType->getType();
             }
 
             $newProp = new DeclareInterfaceProperty($property->getName(), $type);
@@ -166,7 +150,7 @@ class ParserService
 
             $phpDoc = $method->getDocComment();
             $type = $method->hasReturnType()
-                ? $this->docParser->getTypeEquivalent((string) $method->getReturnType(), $this->includeTypeNullable)
+                ? $this->docParser->getTypeEquivalent((string)$method->getReturnType(), $this->includeTypeNullable)
                 : $this->docParser->parseDocComment(
                     $phpDoc,
                     PhpDocParser::PROPERTY_TYPE_METHOD,
@@ -178,11 +162,33 @@ class ParserService
         }
     }
 
+    public function debugProperty(ReflectionProperty $reflectionProperty)
+    {
+        $this->logger->debug('Property: ');
+        $this->logger->debug('-- Name: ' . $reflectionProperty->getName());
+        $this->logger->debug('-- Type: ' . $reflectionProperty->getType());
+        $this->logger->debug('-- DocComment: ' . $reflectionProperty->getDocComment());
+        $this->logger->debug('-- Default Value: ' . $reflectionProperty->getDefaultValue());
+        $this->logger->debug('-- Attributes: ' . join(", ", $reflectionProperty->getAttributes()));
+        $this->logger->debug('-- Modifiers: ' . $reflectionProperty->getModifiers());
+        $this->logger->debug('-- Declaring Class: ' . $reflectionProperty->getDeclaringClass()->getName());
+    }
+
     public function getTypeScriptType(ReflectionProperty $reflectionProperty): ?Type
     {
-        $attr = $reflectionProperty->getAttributes(Type::class);
-        return $attr
-            || $this->reader->getPropertyAnnotation($reflectionProperty, Type::class);
+        $hasTypeAnnotation = $this->reader->getPropertyAnnotation($reflectionProperty, Type::class);
+        $typeAttributes = $reflectionProperty->getAttributes(Type::class);
+        if ($hasTypeAnnotation) {
+            $this->logger->debug('-- hasTypeAnnotation: ' . $hasTypeAnnotation->getType());
+            return $hasTypeAnnotation;
+        }
+        if (count($typeAttributes)) {
+            $typeAttribute = $typeAttributes[0]->getArguments()[0];
+            $this->logger->debug('-- hasTypeAttribute: ' . $typeAttribute);
+            return new Type(['value' => $typeAttribute]);
+        }
+
+        return null;
     }
 
     public function isExcluded(ReflectionProperty $reflectionProperty): bool

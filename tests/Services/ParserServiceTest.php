@@ -14,7 +14,6 @@ class ParserServiceTest extends AbstractTestCase
     public function triggersOnClassesWithCustomAnnotation()
     {
         $content = $this->loadFixture();
-
         $this->assertNotNull($content);
     }
 

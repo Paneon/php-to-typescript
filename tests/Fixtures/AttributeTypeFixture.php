@@ -10,45 +10,16 @@ use Paneon\PhpToTypeScript\Annotation\TypeScriptInterface;
 use Paneon\PhpToTypeScript\Annotation\VirtualProperty;
 
 #[TypeScriptInterface]
-class AttributeClass
+class AttributeTypeFixture
 {
-    use SomeTrait;
-
-    public string $firstName;
-
-    public ?string $middleName;
-
-    public string $lastName;
-
-    public int $age;
-
-    /** @var bool[]  */
     #[Exclude]
     protected array $excluded;
-
-    /**
-     * @var mixed[]
-     */
-    protected array $mixedArray;
-
-    protected SomeClass $someClass;
-
-    /**
-     * @var SomeClass[]
-     */
-    protected array $classCollection;
-
-    protected mixed $mixed;
-
-    protected DateTime $dateTime;
-
-    protected \DateTime $dateTime2;
 
     #[Type("ClassImplementingInterface1|ClassImplementingInterface2")]
     protected FixtureInterface $someInterface;
 
     /**
-     * @var SomeInterface[]
+     * @var FixtureInterface[]
      */
     #[Type("ClassImplementingInterface1[]|ClassImplementingInterface2[]")]
     protected array $someInterfaceArray;
