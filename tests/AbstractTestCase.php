@@ -2,9 +2,6 @@
 
 namespace Paneon\PhpToTypeScript\Tests;
 
-use Doctrine\Common\Annotations\AnnotationException;
-use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Annotations\DocParser;
 use Exception;
 use Monolog\Handler\PHPConsoleHandler;
 use Monolog\Handler\StreamHandler;
@@ -18,13 +15,11 @@ abstract class AbstractTestCase extends TestCase
     protected ParserService $parserService;
 
     /**
-     * @throws AnnotationException
      * @throws Exception
      */
     protected function setUp(): void
     {
         $this->parserService = new ParserService(
-            new AnnotationReader(new DocParser()),
             $this->createLogger(),
             new PhpDocParser()
         );

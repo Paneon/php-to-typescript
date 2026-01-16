@@ -5,16 +5,10 @@ namespace Paneon\PhpToTypeScript\Tests\Fixtures;
 use DateTime;
 use Paneon\PhpToTypeScript\Annotation as PTS;
 
-/**
- * @PTS\TypeScriptInterface
- */
+#[PTS\TypeScriptInterface]
 class ArrayClass
 {
-    /**
-     * @PTS\Exclude()
-     *
-     * @var bool[]
-     */
+    #[PTS\Exclude]
     protected $excluded;
 
     /**
@@ -32,9 +26,7 @@ class ArrayClass
      */
     protected $mixed;
 
-    /**
-     * @PTS\Type("ClassImplementingInterface1[]|ClassImplementingInterface2[]")
-     */
+    #[PTS\Type('ClassImplementingInterface1[]|ClassImplementingInterface2[]')]
     protected $someInterfaceArray;
 
     /**
@@ -44,18 +36,13 @@ class ArrayClass
      */
     protected $psalmArrayType;
 
-    /**
-     * @PTS\VirtualProperty()
-     * @return bool[]
-     */
+    #[PTS\VirtualProperty]
     public function hasSomeValue()
     {
         return [true];
     }
 
-    /**
-     * @PTS\VirtualProperty()
-     */
+    #[PTS\VirtualProperty]
     public function virtualWithReturnType(): int
     {
         return 1;

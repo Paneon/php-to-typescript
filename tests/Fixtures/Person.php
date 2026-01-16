@@ -5,9 +5,7 @@ namespace Paneon\PhpToTypeScript\Tests\Fixtures;
 use DateTime;
 use Paneon\PhpToTypeScript\Annotation as PTS;
 
-/**
- * @PTS\TypeScriptInterface
- */
+#[PTS\TypeScriptInterface]
 class Person
 {
     use SomeTrait;
@@ -32,9 +30,8 @@ class Person
      */
     public $age;
 
+    #[PTS\Exclude]
     /**
-     * @PTS\Exclude()
-     *
      * @var bool[]
      */
     protected $excluded;
@@ -69,16 +66,14 @@ class Person
      */
     protected $dateTime2;
 
+    #[PTS\Type('ClassImplementingInterface1|ClassImplementingInterface2')]
     /**
-     * @PTS\Type("ClassImplementingInterface1|ClassImplementingInterface2")
-     *
      * @var SomeInterface
      */
     protected $someInterface;
 
+    #[PTS\Type('ClassImplementingInterface1[]|ClassImplementingInterface2[]')]
     /**
-     * @PTS\Type("ClassImplementingInterface1[]|ClassImplementingInterface2[]")
-     *
      * @var SomeInterface[]
      */
     protected $someInterfaceArray;
@@ -90,8 +85,8 @@ class Person
      */
     protected $psalmArrayType;
 
+    #[PTS\VirtualProperty]
     /**
-     * @PTS\VirtualProperty()
      * @return bool
      */
     public function hasSomeValue()
@@ -99,9 +94,7 @@ class Person
         return true;
     }
 
-    /**
-     * @PTS\VirtualProperty()
-     */
+    #[PTS\VirtualProperty]
     public function virtualWithReturnType(): int
     {
         return 1;

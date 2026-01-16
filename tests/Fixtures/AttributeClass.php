@@ -22,13 +22,9 @@ class AttributeClass
 
     public int $age;
 
-    /** @var bool[]  */
     #[Exclude]
     protected array $excluded;
 
-    /**
-     * @var mixed[]
-     */
     protected array $mixedArray;
 
     protected SomeClass $someClass;
