@@ -2,7 +2,6 @@
 
 namespace Paneon\PhpToTypeScript\Services;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use Paneon\PhpToTypeScript\Annotation\Exclude;
 use Paneon\PhpToTypeScript\Annotation\Type;
 use Paneon\PhpToTypeScript\Annotation\TypeScriptInterface;
@@ -36,9 +35,9 @@ class ParserService
 
     protected bool $includeTypeNullable = false;
 
-    public function __construct(protected AnnotationReader $reader, protected LoggerInterface $logger, protected PhpDocParser $docParser)
+    public function __construct(protected LoggerInterface $logger, protected PhpDocParser $docParser)
     {
-        $this->parser = (new ParserFactory)->create(ParserFactory::PREFER_PHP7);
+        $this->parser = (new ParserFactory())->createForNewestSupportedVersion();
     }
 
     public function getInterfaceContent(
@@ -91,7 +90,13 @@ class ParserService
 
         foreach ($stmts as $statement) {
             if ($statement instanceof Namespace_) {
-                return implode('\\', $statement->name->parts) . '\\' . $pathinfo['filename'];
+                $namespace = $statement->name?->toString();
+                if (!empty($namespace)) {
+                    return $namespace . '\\' . $pathinfo['filename'];
+                }
+
+                // global namespace
+                return $pathinfo['filename'];
             }
         }
 
@@ -100,7 +105,7 @@ class ParserService
 
     private function hasInterfaceAnnotation(ReflectionClass $reflectionClass)
     {
-        return $reflectionClass->getAttributes(TypeScriptInterface::class) || $this->reader->getClassAnnotation($reflectionClass, TypeScriptInterface::class);
+        return (bool) $reflectionClass->getAttributes(TypeScriptInterface::class);
     }
 
     public function buildInterface(ReflectionClass $class)
@@ -176,14 +181,9 @@ class ParserService
 
     public function getTypeScriptType(ReflectionProperty $reflectionProperty): ?Type
     {
-        $hasTypeAnnotation = $this->reader->getPropertyAnnotation($reflectionProperty, Type::class);
         $typeAttributes = $reflectionProperty->getAttributes(Type::class);
-        if ($hasTypeAnnotation) {
-            $this->logger->debug('-- hasTypeAnnotation: ' . $hasTypeAnnotation->getType());
-            return $hasTypeAnnotation;
-        }
         if (count($typeAttributes)) {
-            $typeAttribute = $typeAttributes[0]->getArguments()[0];
+            $typeAttribute = $typeAttributes[0]->getArguments()[0] ?? null;
             $this->logger->debug('-- hasTypeAttribute: ' . $typeAttribute);
             return new Type(['value' => $typeAttribute]);
         }
@@ -193,14 +193,12 @@ class ParserService
 
     public function isExcluded(ReflectionProperty $reflectionProperty): bool
     {
-        return $reflectionProperty->getAttributes(Exclude::class)
-            || $this->reader->getPropertyAnnotation($reflectionProperty, Exclude::class);
+        return (bool) $reflectionProperty->getAttributes(Exclude::class);
     }
 
     public function isVirtualProperty(ReflectionMethod $reflectionMethod): bool
     {
-        return $reflectionMethod->getAttributes(VirtualProperty::class)
-            || $this->reader->getMethodAnnotation($reflectionMethod, VirtualProperty::class);
+        return (bool) $reflectionMethod->getAttributes(VirtualProperty::class);
     }
 
     public function setIndent($indent): ParserService

@@ -50,6 +50,14 @@ class DeclareInterfaceProperty
 
     public static function isPrimitive($type)
     {
+        $type = trim((string) $type);
+
+        // Treat TypeScript built-in generic types as primitives (no prefix/suffix)
+        // e.g. Array<any>, Array<unknown>, Record<string, any>
+        if (preg_match('/^(array|record|promise|readonlyarray|map|set|readonlymap|readonlyset)\s*</i', $type)) {
+            return true;
+        }
+
         $type = strtolower($type);
         $type = str_replace('[]', '', $type);
 

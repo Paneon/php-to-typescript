@@ -17,12 +17,11 @@
     "authors": [
         {
             "name": "Alexander Pape",
-            "email": "a.pape@paneon.de"
+            "email": "300609+Macavity@users.noreply.github.com"
         }
     ],
     "require": {
-        "doctrine/annotations": "^1.6",
-        "nikic/php-parser": "^3.1.0|^4.0.0",
+        "nikic/php-parser": "^5.0",
         "monolog/monolog": "^1.24|^2|^3"
     },
     "require-dev": {
