@@ -2,6 +2,9 @@ PHP To TypeScript Parser
 ======
 
 [![Build](https://github.com/Paneon/php-to-typescript/actions/workflows/main.yml/badge.svg)](https://github.com/Paneon/php-to-typescript/actions/workflows/main.yml)
+[![Latest Stable Version](https://poser.pugx.org/paneon/php-to-typescript/v/stable)](https://packagist.org/packages/paneon/php-to-typescript)
+[![Total Downloads](https://poser.pugx.org/paneon/php-to-typescript/downloads)](https://packagist.org/packages/paneon/php-to-typescript)
+[![License](https://poser.pugx.org/paneon/php-to-typescript/license)](https://packagist.org/packages/paneon/php-to-typescript)
 
 A library which can be used to create TypeScript classes/interfaces based on PHP classes. Main use case is in a scenario where a PHP backend is consumed by a JavaScript/TypeScript frontend and serialized DTOs are consumed.
 
@@ -25,9 +28,9 @@ WIP
 ```php
 <?php
 
-/**
- * @TypeScriptInterface
- */
+use Paneon\PhpToTypeScript\Annotation as PTS;
+
+#[PTS\TypeScriptInterface]
 class Example
 {
     /**
@@ -49,7 +52,7 @@ class Example
      * @var int|null
      */
     public $age;
-    
+
     /** @var Contact[] */
     public $contacts;
 }
@@ -90,8 +93,8 @@ interface Example {
 
 ## Usage of the Command 'typescript:generate-single'
 
-The purpose of the generate Command is to create TypeScript definitions for Classes from external packages where you 
-can't add the TypeScriptInterface-Annotation but their classes are for example used in your classes. 
+The purpose of the generate command is to create TypeScript definitions for classes from external packages where you
+can't add the `#[TypeScriptInterface]` attribute (e.g. vendor code), but their classes are used in your code.
 It will only affect a single file and needs a specific target location if you don't want it directly inside assets/js/interfaces.
 
 ```bash
