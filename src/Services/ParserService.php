@@ -35,6 +35,10 @@ class ParserService
 
     protected bool $includeTypeNullable = false;
 
+    protected bool $useType = false;
+
+    protected bool $export = false;
+
     public function __construct(protected LoggerInterface $logger, protected PhpDocParser $docParser)
     {
         $this->parser = (new ParserFactory())->createForNewestSupportedVersion();
@@ -79,7 +83,8 @@ class ParserService
     public function getOutputFileName(string $sourceFileName): string
     {
         $sourceFileInfo = pathinfo($sourceFileName);
-        $targetFile = $this->prefix . $sourceFileInfo['filename'] . $this->suffix . '.d.ts';
+        $extension = $this->useType ? '.ts' : '.d.ts';
+        $targetFile = $this->prefix . $sourceFileInfo['filename'] . $this->suffix . $extension;
 
         return $targetFile;
     }
@@ -122,6 +127,9 @@ class ParserService
         if ($this->indent) {
             $this->currentInterface->setIndent($this->indent);
         }
+
+        $this->currentInterface->setUseType($this->useType);
+        $this->currentInterface->setExport($this->export);
 
         $properties = $class->getProperties();
         $methods = $class->getMethods();
@@ -222,6 +230,18 @@ class ParserService
     public function setIncludeTypeNullable($includeTypeNullable): ParserService
     {
         $this->includeTypeNullable = $includeTypeNullable;
+        return $this;
+    }
+
+    public function setUseType(bool $useType): ParserService
+    {
+        $this->useType = $useType;
+        return $this;
+    }
+
+    public function setExport(bool $export): ParserService
+    {
+        $this->export = $export;
         return $this;
     }
 
