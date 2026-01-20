@@ -1,6 +1,21 @@
 Changelog
 ======
 
+# 2.2.0
+
+- Add PHP 8.1+ enum support with new `#[TypeScript]` attribute
+  - String-backed enums → TypeScript enums with string values
+  - Int-backed enums → TypeScript enums with numeric values
+  - Unit enums → TypeScript enums without values
+  - Optional `asUnion: true` parameter to output string literal union types instead
+- Add `ParserService::getEnumContent()` method for parsing enum files
+- Add `ParserService::setUseEnumUnionType()` for global union type default
+- Deprecate `#[TypeScriptInterface]` in favor of unified `#[TypeScript]` attribute (backward compatible)
+
+# 2.1.0
+
+- Add optional type syntax and export keyword support
+
 # 2.0.0
 
 - **BC BREAK**: Remove docblock/Doctrine-style `@TypeScriptInterface` annotation capabilities (use PHP 8 attributes instead).

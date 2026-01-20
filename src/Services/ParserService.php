@@ -6,6 +6,10 @@ use Paneon\PhpToTypeScript\Annotation\Exclude;
 use Paneon\PhpToTypeScript\Annotation\Type;
 use Paneon\PhpToTypeScript\Annotation\TypeScriptInterface;
 use Paneon\PhpToTypeScript\Annotation\VirtualProperty;
+use Paneon\PhpToTypeScript\Attribute\TypeScript;
+use Paneon\PhpToTypeScript\Attribute\TypeScriptInterface as TypeScriptInterfaceAttribute;
+use Paneon\PhpToTypeScript\Parser\DeclareEnum;
+use Paneon\PhpToTypeScript\Parser\DeclareEnumCase;
 use Paneon\PhpToTypeScript\Parser\DeclareInterface;
 use Paneon\PhpToTypeScript\Parser\DeclareInterfaceProperty;
 use Paneon\PhpToTypeScript\Parser\PhpDocParser;
@@ -13,6 +17,8 @@ use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\ParserFactory;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
+use ReflectionEnum;
+use ReflectionEnumBackedCase;
 use ReflectionException;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -38,6 +44,8 @@ class ParserService
     protected bool $useType = false;
 
     protected bool $export = false;
+
+    protected bool $useEnumUnionType = false;
 
     public function __construct(protected LoggerInterface $logger, protected PhpDocParser $docParser)
     {
@@ -108,9 +116,11 @@ class ParserService
         return null;
     }
 
-    private function hasInterfaceAnnotation(ReflectionClass $reflectionClass)
+    private function hasInterfaceAnnotation(ReflectionClass $reflectionClass): bool
     {
-        return (bool) $reflectionClass->getAttributes(TypeScriptInterface::class);
+        return (bool) $reflectionClass->getAttributes(TypeScript::class)
+            || (bool) $reflectionClass->getAttributes(TypeScriptInterface::class)
+            || (bool) $reflectionClass->getAttributes(TypeScriptInterfaceAttribute::class);
     }
 
     public function buildInterface(ReflectionClass $class)
@@ -282,5 +292,89 @@ class ParserService
         }
 
         return $type;
+    }
+
+    public function getEnumContent(
+        string $sourceFileName,
+        bool $requireAnnotation = true
+    ): ?string {
+        $stmts = $this->getStatements($sourceFileName);
+        $fullClassName = $this->getFullyQualifiedClassName($stmts, $sourceFileName);
+
+        if (!enum_exists($fullClassName)) {
+            $this->logger->debug('Not an enum: ' . $fullClassName);
+            return null;
+        }
+
+        try {
+            $reflectionEnum = new ReflectionEnum($fullClassName);
+        } catch (ReflectionException $exception) {
+            $this->logger->debug(
+                'Error creating ReflectionEnum of ' . $fullClassName,
+                [
+                    'exception' => $exception
+                ]
+            );
+            return null;
+        }
+
+        if ($requireAnnotation && !$this->hasEnumAnnotation($reflectionEnum)) {
+            return null;
+        }
+
+        return $this->buildEnum($reflectionEnum);
+    }
+
+    private function hasEnumAnnotation(ReflectionEnum $reflectionEnum): bool
+    {
+        return (bool) $reflectionEnum->getAttributes(TypeScript::class);
+    }
+
+    public function buildEnum(ReflectionEnum $enum): string
+    {
+        $this->logger->debug('---------- New Enum for: ' . $enum->getName() . ' ----------');
+
+        $declareEnum = new DeclareEnum($enum->getShortName());
+
+        if ($this->prefix) {
+            $declareEnum->setPrefix($this->prefix);
+        }
+        if ($this->suffix) {
+            $declareEnum->setSuffix($this->suffix);
+        }
+        if ($this->indent) {
+            $declareEnum->setIndent($this->indent);
+        }
+
+        $declareEnum->setExport($this->export);
+
+        // Check for asUnion attribute option (null means use global setting)
+        $asUnion = $this->useEnumUnionType;
+        $attributes = $enum->getAttributes(TypeScript::class);
+        if (count($attributes)) {
+            $attribute = $attributes[0]->newInstance();
+            if ($attribute->asUnion !== null) {
+                $asUnion = $attribute->asUnion;
+            }
+        }
+        $declareEnum->setAsUnion($asUnion);
+
+        // Add enum cases
+        foreach ($enum->getCases() as $case) {
+            $value = null;
+            if ($case instanceof ReflectionEnumBackedCase) {
+                $value = $case->getBackingValue();
+            }
+            $declareEnumCase = new DeclareEnumCase($case->getName(), $value);
+            $declareEnum->addCase($declareEnumCase);
+        }
+
+        return (string) $declareEnum;
+    }
+
+    public function setUseEnumUnionType(bool $useEnumUnionType): ParserService
+    {
+        $this->useEnumUnionType = $useEnumUnionType;
+        return $this;
     }
 }

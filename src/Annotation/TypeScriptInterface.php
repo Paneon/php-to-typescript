@@ -7,6 +7,7 @@ use Attribute;
 /**
  * Class TypeScriptInterface
  *
+ * @deprecated Use \Paneon\PhpToTypeScript\Attribute\TypeScript instead
  * @Annotation
  * @Target("CLASS")
  */
