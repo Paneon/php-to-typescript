@@ -90,6 +90,71 @@ interface Example {
 }
 ```
 
+## Output Format Options
+
+By default, the parser generates TypeScript interface declarations (`.d.ts` files). You can customize the output format using these options:
+
+### Type Syntax
+
+Use `setUseType(true)` to generate `type` aliases instead of `interface` declarations. This also changes the file extension from `.d.ts` to `.ts`.
+
+```php
+$parserService->setUseType(true);
+```
+
+#### Output with type syntax:
+
+```typescript
+type Example = {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  age: number;
+  contacts: Contact[];
+};
+```
+
+### Export Keyword
+
+Use `setExport(true)` to prefix the output with the `export` keyword.
+
+```php
+$parserService->setExport(true);
+```
+
+#### Output with export:
+
+```typescript
+export interface Example {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  age: number;
+  contacts: Contact[];
+}
+```
+
+### Combining Options
+
+You can combine both options to generate exported type aliases:
+
+```php
+$parserService
+    ->setUseType(true)
+    ->setExport(true);
+```
+
+#### Output with both options:
+
+```typescript
+export type Example = {
+  firstName: string;
+  middleName: string;
+  lastName: string;
+  age: number;
+  contacts: Contact[];
+};
+```
 
 ## Usage of the Command 'typescript:generate-single'
 
@@ -98,7 +163,7 @@ can't add the `#[TypeScriptInterface]` attribute (e.g. vendor code), but their c
 It will only affect a single file and needs a specific target location if you don't want it directly inside assets/js/interfaces.
 
 ```bash
-$ php bin/console typescript:generate-single vendor/shopping/s2-communication-bundle/src/CommunicationBundle/DTO/ProductTeaser.php assets/js/interfaces/s2-communication-bundle/DTO/
+$ php bin/console typescript:generate-single src/DTO/ProductTeaser.php assets/types/
 ```
 
 It's recommended to trigger the generation of theses interfaces after `composer update/install`.
