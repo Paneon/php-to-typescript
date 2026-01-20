@@ -135,7 +135,7 @@ class ParserServiceTypeExportTest extends AbstractTestCase
         $this->assertEquals('IPersonInterface.d.ts', $outputFileName);
     }
 
-    private function loadFixture(): ?string
+    private function loadFixture(): string
     {
         $fixture = $this->getDefaultFixtureFile();
         return $this->parserService->getInterfaceContent($fixture);
