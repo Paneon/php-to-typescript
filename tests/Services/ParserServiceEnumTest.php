@@ -133,4 +133,28 @@ class ParserServiceEnumTest extends AbstractTestCase
         $this->assertNotNull($content);
         $this->assertStringContainsString("type SuitEnum = 'hearts' | 'diamonds' | 'clubs' | 'spades';", $content);
     }
+
+    /**
+     * @test
+     */
+    public function getContentDetectsEnum()
+    {
+        $fixture = __DIR__ . '/../Fixtures/SuitEnum.php';
+        $content = $this->parserService->getContent($fixture);
+
+        $this->assertNotNull($content);
+        $this->assertStringContainsString('enum SuitEnum {', $content);
+    }
+
+    /**
+     * @test
+     */
+    public function getContentDetectsClass()
+    {
+        $fixture = __DIR__ . '/../Fixtures/Person.php';
+        $content = $this->parserService->getContent($fixture);
+
+        $this->assertNotNull($content);
+        $this->assertStringContainsString('interface Person {', $content);
+    }
 }

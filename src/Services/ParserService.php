@@ -52,6 +52,26 @@ class ParserService
         $this->parser = (new ParserFactory())->createForNewestSupportedVersion();
     }
 
+    /**
+     * Parses a PHP file and returns TypeScript content.
+     * Automatically detects whether the file contains a class or enum.
+     */
+    public function getContent(string $sourceFileName, bool $requireAttribute = true): ?string
+    {
+        $stmts = $this->getStatements($sourceFileName);
+        $fullClassName = $this->getFullyQualifiedClassName($stmts, $sourceFileName);
+
+        if ($fullClassName === null) {
+            return null;
+        }
+
+        if (enum_exists($fullClassName)) {
+            return $this->getEnumContent($sourceFileName, $requireAttribute);
+        }
+
+        return $this->getInterfaceContent($sourceFileName, $requireAttribute);
+    }
+
     public function getInterfaceContent(
         string $sourceFileName,
                $requireAnnotation = true
