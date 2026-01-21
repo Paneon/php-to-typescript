@@ -2,15 +2,13 @@
 
 namespace Paneon\PhpToTypeScript\Annotation;
 
-use Attribute;
-
 /**
  * Class TypeScriptInterface
  *
  * @Annotation
  * @Target("METHOD")
  */
-#[Attribute(flags: Attribute::TARGET_METHOD)]
+#[\Attribute(flags: \Attribute::TARGET_METHOD)]
 class VirtualProperty
 {
     protected array $type;

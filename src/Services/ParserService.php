@@ -8,6 +8,7 @@ use Paneon\PhpToTypeScript\Annotation\TypeScriptInterface;
 use Paneon\PhpToTypeScript\Annotation\VirtualProperty;
 use Paneon\PhpToTypeScript\Attribute\TypeScript;
 use Paneon\PhpToTypeScript\Attribute\TypeScriptInterface as TypeScriptInterfaceAttribute;
+use Paneon\PhpToTypeScript\Model\SourceFileCollection;
 use Paneon\PhpToTypeScript\Parser\DeclareEnum;
 use Paneon\PhpToTypeScript\Parser\DeclareEnumCase;
 use Paneon\PhpToTypeScript\Parser\DeclareInterface;
@@ -46,6 +47,14 @@ class ParserService
     protected bool $export = false;
 
     protected bool $useEnumUnionType = false;
+
+    /** @var bool When true, all types are in one file, no imports needed */
+    protected bool $singleFileMode = false;
+
+    protected ?SourceFileCollection $sourceFiles = null;
+
+    /** @var string|null Current target directory for resolving relative imports */
+    protected ?string $currentTargetDirectory = null;
 
     public function __construct(protected LoggerInterface $logger, protected PhpDocParser $docParser)
     {
@@ -143,7 +152,7 @@ class ParserService
             || (bool) $reflectionClass->getAttributes(TypeScriptInterfaceAttribute::class);
     }
 
-    public function buildInterface(ReflectionClass $class)
+    public function buildInterface(ReflectionClass $class): void
     {
         $this->logger->debug('---------- New Interface for: ' . $class->getName() . ' ----------');
         $this->currentInterface = new DeclareInterface($class->getShortName());
@@ -202,6 +211,41 @@ class ParserService
 
             $newProp = new DeclareInterfaceProperty($method->getName(), $type);
             $this->currentInterface->addProperty($newProp);
+        }
+
+        // Resolve imports if not in single file mode and we have a source file collection
+        $this->resolveImports();
+    }
+
+    /**
+     * Resolve import paths for referenced types.
+     */
+    protected function resolveImports(): void
+    {
+        if ($this->singleFileMode || $this->sourceFiles === null || $this->currentTargetDirectory === null) {
+            return;
+        }
+
+        $referencedTypes = $this->currentInterface->getReferencedTypes();
+        $currentClassName = str_replace([$this->prefix, $this->suffix], '', $this->currentInterface->getName());
+
+        foreach ($referencedTypes as $typeName) {
+            // Don't import self
+            if ($typeName === $currentClassName) {
+                continue;
+            }
+
+            $importPath = $this->sourceFiles->getImportPath(
+                $this->currentTargetDirectory,
+                $typeName,
+                $this->prefix,
+                $this->suffix
+            );
+
+            if ($importPath !== null) {
+                $this->currentInterface->addImport($typeName, $importPath);
+                $this->logger->debug("- Import: {$typeName} from {$importPath}");
+            }
         }
     }
 
@@ -395,6 +439,34 @@ class ParserService
     public function setUseEnumUnionType(bool $useEnumUnionType): ParserService
     {
         $this->useEnumUnionType = $useEnumUnionType;
+        return $this;
+    }
+
+    /**
+     * Enable single file mode (all types in one file, no imports generated).
+     */
+    public function setSingleFileMode(bool $singleFileMode): ParserService
+    {
+        $this->singleFileMode = $singleFileMode;
+        return $this;
+    }
+
+    /**
+     * Set the source file collection for resolving import paths.
+     */
+    public function setSourceFiles(SourceFileCollection $sourceFiles): ParserService
+    {
+        $this->sourceFiles = $sourceFiles;
+        return $this;
+    }
+
+    /**
+     * Set the current target directory for the file being generated.
+     * This is used to calculate relative import paths.
+     */
+    public function setCurrentTargetDirectory(string $targetDirectory): ParserService
+    {
+        $this->currentTargetDirectory = $targetDirectory;
         return $this;
     }
 }

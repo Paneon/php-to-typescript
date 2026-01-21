@@ -11,6 +11,10 @@ Changelog
 - Add `ParserService::getContent()` method that auto-detects classes and enums
 - Add `ParserService::getEnumContent()` method for parsing enum files
 - Add `ParserService::setUseEnumUnionType()` for global union type default
+- Add import statement generation for referenced types
+  - `SourceFileCollection` to register files and calculate relative import paths
+  - `setSingleFileMode(true)` to disable imports when all types are in one file
+  - `setSourceFiles()` and `setCurrentTargetDirectory()` for multi-file generation
 - Deprecate `#[TypeScriptInterface]` in favor of unified `#[TypeScript]` attribute (backward compatible)
 
 # 2.1.0
