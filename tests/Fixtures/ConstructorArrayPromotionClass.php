@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Paneon\PhpToTypeScript\Tests\Fixtures;
 
-use Paneon\PhpToTypeScript\Annotation as PTS;
+use Paneon\PhpToTypeScript\Attribute\TypeScript;
 
-#[PTS\TypeScriptInterface]
+#[TypeScript]
 class ConstructorArrayPromotionClass
 {
     public function __construct(

@@ -4,8 +4,9 @@ namespace Paneon\PhpToTypeScript\Tests\Fixtures;
 
 use DateTime;
 use Paneon\PhpToTypeScript\Annotation as PTS;
+use Paneon\PhpToTypeScript\Attribute\TypeScript;
 
-#[PTS\TypeScriptInterface]
+#[TypeScript]
 class ArrayClass
 {
     #[PTS\Exclude]

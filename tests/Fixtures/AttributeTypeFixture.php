@@ -8,8 +8,9 @@ use Paneon\PhpToTypeScript\Annotation\Exclude;
 use Paneon\PhpToTypeScript\Annotation\Type;
 use Paneon\PhpToTypeScript\Annotation\TypeScriptInterface;
 use Paneon\PhpToTypeScript\Annotation\VirtualProperty;
+use Paneon\PhpToTypeScript\Attribute\TypeScript;
 
-#[TypeScriptInterface]
+#[TypeScript]
 class AttributeTypeFixture
 {
     #[Exclude]
