@@ -6,6 +6,11 @@ use Paneon\PhpToTypeScript\Annotation\Exclude;
 use Paneon\PhpToTypeScript\Annotation\Type;
 use Paneon\PhpToTypeScript\Annotation\TypeScriptInterface;
 use Paneon\PhpToTypeScript\Annotation\VirtualProperty;
+use Paneon\PhpToTypeScript\Attribute\TypeScript;
+use Paneon\PhpToTypeScript\Attribute\TypeScriptInterface as TypeScriptInterfaceAttribute;
+use Paneon\PhpToTypeScript\Model\SourceFileCollection;
+use Paneon\PhpToTypeScript\Parser\DeclareEnum;
+use Paneon\PhpToTypeScript\Parser\DeclareEnumCase;
 use Paneon\PhpToTypeScript\Parser\DeclareInterface;
 use Paneon\PhpToTypeScript\Parser\DeclareInterfaceProperty;
 use Paneon\PhpToTypeScript\Parser\PhpDocParser;
@@ -13,6 +18,8 @@ use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\ParserFactory;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
+use ReflectionEnum;
+use ReflectionEnumBackedCase;
 use ReflectionException;
 use ReflectionMethod;
 use ReflectionNamedType;
@@ -39,9 +46,39 @@ class ParserService
 
     protected bool $export = false;
 
+    protected bool $useEnumUnionType = false;
+
+    /** @var bool When true, all types are in one file, no imports needed */
+    protected bool $singleFileMode = false;
+
+    protected ?SourceFileCollection $sourceFiles = null;
+
+    /** @var string|null Current target directory for resolving relative imports */
+    protected ?string $currentTargetDirectory = null;
+
     public function __construct(protected LoggerInterface $logger, protected PhpDocParser $docParser)
     {
         $this->parser = (new ParserFactory())->createForNewestSupportedVersion();
+    }
+
+    /**
+     * Parses a PHP file and returns TypeScript content.
+     * Automatically detects whether the file contains a class or enum.
+     */
+    public function getContent(string $sourceFileName, bool $requireAttribute = true): ?string
+    {
+        $stmts = $this->getStatements($sourceFileName);
+        $fullClassName = $this->getFullyQualifiedClassName($stmts, $sourceFileName);
+
+        if ($fullClassName === null) {
+            return null;
+        }
+
+        if (enum_exists($fullClassName)) {
+            return $this->getEnumContent($sourceFileName, $requireAttribute);
+        }
+
+        return $this->getInterfaceContent($sourceFileName, $requireAttribute);
     }
 
     public function getInterfaceContent(
@@ -108,12 +145,14 @@ class ParserService
         return null;
     }
 
-    private function hasInterfaceAnnotation(ReflectionClass $reflectionClass)
+    private function hasInterfaceAnnotation(ReflectionClass $reflectionClass): bool
     {
-        return (bool) $reflectionClass->getAttributes(TypeScriptInterface::class);
+        return (bool) $reflectionClass->getAttributes(TypeScript::class)
+            || (bool) $reflectionClass->getAttributes(TypeScriptInterface::class)
+            || (bool) $reflectionClass->getAttributes(TypeScriptInterfaceAttribute::class);
     }
 
-    public function buildInterface(ReflectionClass $class)
+    public function buildInterface(ReflectionClass $class): void
     {
         $this->logger->debug('---------- New Interface for: ' . $class->getName() . ' ----------');
         $this->currentInterface = new DeclareInterface($class->getShortName());
@@ -172,6 +211,41 @@ class ParserService
 
             $newProp = new DeclareInterfaceProperty($method->getName(), $type);
             $this->currentInterface->addProperty($newProp);
+        }
+
+        // Resolve imports if not in single file mode and we have a source file collection
+        $this->resolveImports();
+    }
+
+    /**
+     * Resolve import paths for referenced types.
+     */
+    protected function resolveImports(): void
+    {
+        if ($this->singleFileMode || $this->sourceFiles === null || $this->currentTargetDirectory === null) {
+            return;
+        }
+
+        $referencedTypes = $this->currentInterface->getReferencedTypes();
+        $currentClassName = str_replace([$this->prefix, $this->suffix], '', $this->currentInterface->getName());
+
+        foreach ($referencedTypes as $typeName) {
+            // Don't import self
+            if ($typeName === $currentClassName) {
+                continue;
+            }
+
+            $importPath = $this->sourceFiles->getImportPath(
+                $this->currentTargetDirectory,
+                $typeName,
+                $this->prefix,
+                $this->suffix
+            );
+
+            if ($importPath !== null) {
+                $this->currentInterface->addImport($typeName, $importPath);
+                $this->logger->debug("- Import: {$typeName} from {$importPath}");
+            }
         }
     }
 
@@ -282,5 +356,117 @@ class ParserService
         }
 
         return $type;
+    }
+
+    public function getEnumContent(
+        string $sourceFileName,
+        bool $requireAnnotation = true
+    ): ?string {
+        $stmts = $this->getStatements($sourceFileName);
+        $fullClassName = $this->getFullyQualifiedClassName($stmts, $sourceFileName);
+
+        if (!enum_exists($fullClassName)) {
+            $this->logger->debug('Not an enum: ' . $fullClassName);
+            return null;
+        }
+
+        try {
+            $reflectionEnum = new ReflectionEnum($fullClassName);
+        } catch (ReflectionException $exception) {
+            $this->logger->debug(
+                'Error creating ReflectionEnum of ' . $fullClassName,
+                [
+                    'exception' => $exception
+                ]
+            );
+            return null;
+        }
+
+        if ($requireAnnotation && !$this->hasEnumAnnotation($reflectionEnum)) {
+            return null;
+        }
+
+        return $this->buildEnum($reflectionEnum);
+    }
+
+    private function hasEnumAnnotation(ReflectionEnum $reflectionEnum): bool
+    {
+        return (bool) $reflectionEnum->getAttributes(TypeScript::class);
+    }
+
+    public function buildEnum(ReflectionEnum $enum): string
+    {
+        $this->logger->debug('---------- New Enum for: ' . $enum->getName() . ' ----------');
+
+        $declareEnum = new DeclareEnum($enum->getShortName());
+
+        if ($this->prefix) {
+            $declareEnum->setPrefix($this->prefix);
+        }
+        if ($this->suffix) {
+            $declareEnum->setSuffix($this->suffix);
+        }
+        if ($this->indent) {
+            $declareEnum->setIndent($this->indent);
+        }
+
+        $declareEnum->setExport($this->export);
+
+        // Check for asUnion attribute option (null means use global setting)
+        $asUnion = $this->useEnumUnionType;
+        $attributes = $enum->getAttributes(TypeScript::class);
+        if (count($attributes)) {
+            $attribute = $attributes[0]->newInstance();
+            if ($attribute->asUnion !== null) {
+                $asUnion = $attribute->asUnion;
+            }
+        }
+        $declareEnum->setAsUnion($asUnion);
+
+        // Add enum cases
+        foreach ($enum->getCases() as $case) {
+            $value = null;
+            if ($case instanceof ReflectionEnumBackedCase) {
+                $value = $case->getBackingValue();
+            }
+            $declareEnumCase = new DeclareEnumCase($case->getName(), $value);
+            $declareEnum->addCase($declareEnumCase);
+        }
+
+        return (string) $declareEnum;
+    }
+
+    public function setUseEnumUnionType(bool $useEnumUnionType): ParserService
+    {
+        $this->useEnumUnionType = $useEnumUnionType;
+        return $this;
+    }
+
+    /**
+     * Enable single file mode (all types in one file, no imports generated).
+     */
+    public function setSingleFileMode(bool $singleFileMode): ParserService
+    {
+        $this->singleFileMode = $singleFileMode;
+        return $this;
+    }
+
+    /**
+     * Set the source file collection for resolving import paths.
+     */
+    public function setSourceFiles(SourceFileCollection $sourceFiles): ParserService
+    {
+        $this->sourceFiles = $sourceFiles;
+        return $this;
+    }
+
+    /**
+     * Set the current target directory for the file being generated.
+     * This is used to calculate relative import paths.
+     */
+    public function setCurrentTargetDirectory(string $targetDirectory): ParserService
+    {
+        $this->currentTargetDirectory = $targetDirectory;
+        return $this;
     }
 }

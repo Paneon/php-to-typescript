@@ -100,4 +100,28 @@ class DeclareInterfaceProperty
         $this->suffix = $suffix;
         return $this;
     }
+
+    /**
+     * Returns non-primitive types referenced by this property.
+     * These are the types that may need to be imported.
+     *
+     * @return string[] List of referenced type names (without prefix/suffix, without array brackets)
+     */
+    public function getReferencedTypes(): array
+    {
+        $types = explode('|', $this->type);
+        $referencedTypes = [];
+
+        foreach ($types as $type) {
+            $type = trim($type);
+            // Remove array brackets to get base type
+            $baseType = str_replace('[]', '', $type);
+
+            if (!self::isPrimitive($baseType) && $baseType !== '') {
+                $referencedTypes[] = $baseType;
+            }
+        }
+
+        return array_unique($referencedTypes);
+    }
 }

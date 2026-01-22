@@ -1,16 +1,15 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Paneon\PhpToTypeScript\Tests\Fixtures;
 
 use Paneon\PhpToTypeScript\Attribute\TypeScript;
 
 #[TypeScript]
-class ConstructorArrayPromotionClass
+final readonly class ProductDetailDTO
 {
     public function __construct(
-        public array $jobs,
-    ) {
-    }
+        public int $id,
+        public string $name,
+        public string $price,
+    ) {}
 }

@@ -2,15 +2,13 @@
 
 namespace Paneon\PhpToTypeScript\Annotation;
 
-use Attribute;
-
 /**
  * Class TypeScriptInterface
  *
  * @Annotation
  * @Target("PROPERTY")
  */
-#[Attribute(flags: Attribute::TARGET_PROPERTY)]
+#[\Attribute(flags: \Attribute::TARGET_PROPERTY)]
 class Type
 {
     protected array $type;
