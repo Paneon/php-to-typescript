@@ -43,7 +43,7 @@ class DeclareInterface
         // Add import statements
         $importStatements = $this->generateImportStatements();
         if ($importStatements !== '') {
-            $output .= $importStatements . "\n";
+            $output .= $importStatements . "\n\n";
         }
 
         // Build interface body
