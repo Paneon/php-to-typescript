@@ -1,0 +1,39 @@
+services:
+  _defaults:
+    autowire: false
+    public: false
+
+  Paneon\PhpToTypeScriptBundle\Command\GenerateCommand:
+    public: true
+    tags: ['console.command']
+    arguments:
+        $parserService: '@Paneon\PhpToTypeScript\Services\ParserService'
+        $fs: '@filesystem'
+        $additionalFiles: '%type_script_generator.interfaces%'
+        $additionalDirectories: '%type_script_generator.directories%'
+        $prefix: '%type_script_generator.prefix%'
+        $suffix: '%type_script_generator.suffix%'
+        $indent: '%type_script_generator.indentation%'
+        $inputDirectory: '%type_script_generator.inputDirectory%'
+        $outputDirectory: '%type_script_generator.outputDirectory%'
+        $nullable: '%type_script_generator.nullable%'
+        $useType: '%type_script_generator.useType%'
+        $export: '%type_script_generator.export%'
+        $useEnumUnionType: '%type_script_generator.useEnumUnionType%'
+        $singleFileMode: '%type_script_generator.singleFileMode%'
+        $singleFileOutput: '%type_script_generator.singleFileOutput%'
+
+  Paneon\PhpToTypeScriptBundle\Command\GenerateCommandSingle:
+      public: true
+      tags: ['console.command']
+      arguments:
+          $parserService: '@Paneon\PhpToTypeScript\Services\ParserService'
+          $fs: '@filesystem'
+
+  Paneon\PhpToTypeScript\Parser\PhpDocParser: ~
+
+  Paneon\PhpToTypeScript\Services\ParserService:
+      public: true
+      arguments:
+          $logger: '@monolog.logger'
+          $docParser: '@Paneon\PhpToTypeScript\Parser\PhpDocParser'
