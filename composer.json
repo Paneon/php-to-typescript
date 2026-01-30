@@ -3,6 +3,13 @@
     "description": "Generate TypeScript classes and interfaces based on PHP classes.",
     "type": "library",
     "license": "MIT",
+    "keywords": ["typescript", "php", "generator", "dto"],
+    "authors": [
+        {
+            "name": "Alexander Pape",
+            "email": "300609+Macavity@users.noreply.github.com"
+        }
+    ],
     "autoload": {
         "psr-4": {
             "Paneon\\PhpToTypeScript\\": "src/"
@@ -14,15 +21,10 @@
             "Paneon\\PhpToTypeScript\\Tests\\": "tests/"
         }
     },
-    "authors": [
-        {
-            "name": "Alexander Pape",
-            "email": "300609+Macavity@users.noreply.github.com"
-        }
-    ],
     "require": {
         "nikic/php-parser": "^5.0",
-        "monolog/monolog": "^1.24|^2|^3"
+        "monolog/monolog": "^1.24|^2|^3",
+        "symplify/monorepo-builder": "^11.2"
     },
     "require-dev": {
         "phpstan/phpstan": "^1.2",
@@ -36,8 +38,8 @@
         "lint": [
             "@php vendor/bin/phpstan analyze src --level=5"
         ],
-        "test": [
-            "vendor/bin/phpunit"
-        ]
+        "test": "phpunit tests",
+        "test-all": "npm run test && npm run test-symfony && npm run test-laravel",
+        "test-symfony": "cd packages/symfony-bundle && composer install --no-scripts && composer test"
     }
 }

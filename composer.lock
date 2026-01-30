@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c99279c25ce6e7ac9e4c6a41f6acd485",
+    "content-hash": "a7b01d213d2fe856853dc9f3c1ddbe95",
     "packages": [
         {
             "name": "monolog/monolog",
@@ -216,6 +216,58 @@
                 "source": "https://github.com/php-fig/log/tree/3.0.2"
             },
             "time": "2024-09-11T13:17:53+00:00"
+        },
+        {
+            "name": "symplify/monorepo-builder",
+            "version": "11.2.23",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symplify/monorepo-builder.git",
+                "reference": "cd0faf050efe72b1348e8432e9b85620b476c678"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symplify/monorepo-builder/zipball/cd0faf050efe72b1348e8432e9b85620b476c678",
+                "reference": "cd0faf050efe72b1348e8432e9b85620b476c678",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.2"
+            },
+            "bin": [
+                "bin/monorepo-builder"
+            ],
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-main": "10.3-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "bootstrap.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Prefixed version of Not only Composer tools to build a Monorepo.",
+            "support": {
+                "issues": "https://github.com/symplify/monorepo-builder/issues",
+                "source": "https://github.com/symplify/monorepo-builder/tree/11.2.23"
+            },
+            "funding": [
+                {
+                    "url": "https://www.paypal.me/rectorphp",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/tomasvotruba",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-07-11T02:50:53+00:00"
         }
     ],
     "packages-dev": [
@@ -1757,5 +1809,5 @@
     "prefer-lowest": false,
     "platform": {},
     "platform-dev": {},
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.9.0"
 }
