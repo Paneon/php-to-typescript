@@ -1,0 +1,32 @@
+name: Split Bundles
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - 'main'
+
+jobs:
+  split:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checkout monorepo
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history needed for tags
+
+      # 2. Split symfony-bundle to read-only repo
+      - name: Split Symfony Bundle
+        uses: danharrin/monorepo-split-github-action@v2.3.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.BUNDLE_SPLIT_TOKEN }}
+        with:
+          package_directory: 'packages/symfony-bundle'
+          repository_organization: 'Paneon'
+          repository_name: 'php-to-typescript-bundle'
+          branch: 'main'
+          tag: ${{ github.ref_name }}
+          user_name: 'git-split[bot]'
+          user_email: 'git-split[bot]@users.noreply.github.com'
