@@ -329,6 +329,23 @@ class GenerateCommand extends Command
             }
         }
 
+        // Process additional directories
+        if ($this->additionalDirectories) {
+            foreach ($this->additionalDirectories as $fromDir => $configArray) {
+                $fromDir = realpath($fromDir) ?: $fromDir;
+                $files = $this->getPhpFiles($fromDir);
+
+                foreach ($files as $sourceFileName) {
+                    $content = $this->parserService->getContent($sourceFileName, $configArray['requireAnnotation']);
+
+                    if ($content) {
+                        $allContent[] = $content;
+                        $output->writeln('- ' . $sourceFileName);
+                    }
+                }
+            }
+        }
+
         // Process additional files (they don't require annotation)
         foreach ($this->additionalFiles as $additionalFile => $configArray) {
             $content = $this->parserService->getContent($additionalFile, false);

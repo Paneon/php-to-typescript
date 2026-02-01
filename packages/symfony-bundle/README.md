@@ -265,25 +265,145 @@ php bin/console typescript:generate --enum-union-type
 type Status = 'active' | 'inactive' | 'pending';
 ```
 
-## Configuration Options
+## Bundle configuration (`php_to_typescript`)
 
-You can configure these options in `config/packages/php_to_typescript.yaml`:
+Create (or update) `config/packages/php_to_typescript.yaml`:
 
 ```yaml
 php_to_typescript:
-    indentation: 2
-    inputDirectory: src/
-    outputDirectory: assets/js/interfaces/
-    prefix: ''
-    suffix: ''
-    nullable: false
-    useType: false           # Generate type aliases instead of interfaces
-    export: false            # Add export keyword to declarations
-    useEnumUnionType: false  # Output enums as union types
-    singleFileMode: false    # Output all types to a single file
-    singleFileOutput: 'types.ts'  # Filename for single file mode
+  # Formatting
+  indentation: 2
+
+  # Where to scan for PHP classes/enums
+  inputDirectory: 'src/'
+
+  # Base output directory.
+  # All generated types will be written under this directory.
+  outputDirectory: 'assets/js/interfaces/'
+
+  # Optional naming adjustments
+  prefix: ''
+  suffix: ''
+
+  # Type generation behavior
+  nullable: false           # include `| null` in generated TS types
+  useType: false            # generate `type Foo = {}` instead of `interface Foo {}`
+  export: false             # add `export` in front of declarations
+  useEnumUnionType: false   # output enums as union types: type Status = 'a' | 'b'
+
+  # Single file mode
+  singleFileMode: false
+  singleFileOutput: 'types.ts'
+
+  # Optional: additional individual files to convert (always processed, no annotation required)
+  # See "Understanding `interfaces` vs `directories`" section below for details
+  interfaces:
+    'vendor/some-package/src/DTO/ExternalDto.php':
+      output: 'external/some-package/'
+
+  # Optional: additional directories to scan recursively
+  # See "Understanding `interfaces` vs `directories`" section below for details
+  directories:
+    'vendor/some-package/src/DTO/':
+      output: 'external/some-package/'
+      requireAnnotation: false  # false = convert all classes, true = only with #[TypeScript]
 ```
 
+### Understanding `interfaces` vs `directories`
+
+Both options allow you to process external code (e.g., vendor packages), but they work differently:
+
+#### `interfaces` - Individual Files
+
+Use when you need to convert **specific single files**.
+
+**Configuration (map syntax):**
+```yaml
+interfaces:
+  'vendor/acme/lib/src/User.php':
+    output: 'external/acme/'
+```
+
+**Configuration (list syntax):**
+```yaml
+interfaces:
+  - path: 'vendor/acme/lib/src/User.php'
+    output: 'external/acme/'
+  - path: 'vendor/acme/lib/src/Product.php'
+    output: 'external/acme/'
+```
+
+**Behavior:**
+- Processes exactly one file per entry
+- **Always converts** the file (doesn't require `#[TypeScript]` attribute)
+- Useful for external/vendor code you cannot modify
+- Only has `output` option (relative to `outputDirectory`)
+
+#### `directories` - Recursive Directory Scanning
+
+Use when you need to convert **all classes in a directory**.
+
+**Configuration (map syntax):**
+```yaml
+directories:
+  'vendor/acme/lib/src/DTO/':
+    output: 'external/acme/'
+    requireAnnotation: false  # optional, defaults to false
+```
+
+**Configuration (list syntax):**
+```yaml
+directories:
+  - path: 'vendor/acme/lib/src/DTO/'
+    output: 'external/acme/'
+    requireAnnotation: false
+  - path: 'vendor/foo/lib/src/Models/'
+    output: 'external/foo/'
+    requireAnnotation: true
+```
+
+**Behavior:**
+- Recursively scans all `.php` files in the directory
+- Preserves directory structure in output
+- Has `requireAnnotation` option:
+  - `false` (default) - Converts all PHP classes/enums found
+  - `true` - Only converts files with `#[TypeScript]` attribute
+- Useful for processing entire packages or modules
+
+**When to use each:**
+- **`interfaces`**: You know the exact file and want to convert it (e.g., a specific DTO class)
+- **`directories`**: You want to convert all classes in a package/directory (e.g., all DTOs from a vendor package)
+
+**Note:** Both map and list syntaxes are supported and produce identical results. Use whichever format you find more readable.
+
+### Example: Full configuration
+
+Here's a complete example using `%kernel.project_dir%` and single file mode:
+
+```yaml
+php_to_typescript:
+  indentation: 4
+  inputDirectory: '%kernel.project_dir%/src'
+  outputDirectory: '%kernel.project_dir%/assets/types'
+
+  nullable: true
+  useType: true
+  export: true
+  singleFileMode: true
+
+  # Using list syntax for better readability with multiple entries
+  directories:
+    - path: 'vendor/symfony/dotenv/Command/'
+      output: 'external/Command/'
+      requireAnnotation: false
+    - path: 'vendor/acme/lib/src/DTO/'
+      output: 'external/acme/'
+      requireAnnotation: true
+
+  interfaces:
+    - path: 'vendor/foo/bar/SpecialClass.php'
+      output: 'external/foo/'
+```
 
 ## Usage of the Command 'typescript:generate-single'
 

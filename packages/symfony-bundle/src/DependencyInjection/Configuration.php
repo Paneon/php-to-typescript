@@ -46,11 +46,27 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->arrayNode('interfaces')
                     ->normalizeKeys(false)
-                    ->useAttributeAsKey('name')
-                    ->normalizeKeys(false)
+                    ->beforeNormalization()
+                        ->always(function ($v) {
+                            // If it's already a list format (numeric keys), return as-is
+                            if (isset($v[0]) || empty($v)) {
+                                return $v;
+                            }
+
+                            // Convert map format to list format
+                            // From: ['path/to/file' => ['output' => 'out/']]
+                            // To: [['path' => 'path/to/file', 'output' => 'out/']]
+                            $normalized = [];
+                            foreach ($v as $path => $config) {
+                                $normalized[] = array_merge(['path' => $path], $config ?? []);
+                            }
+                            return $normalized;
+                        })
+                    ->end()
                     ->arrayPrototype()
                         ->normalizeKeys(false)
                         ->children()
+                            ->scalarNode('path')->isRequired()->end()
                             ->scalarNode('output')->end()
                         ->end()
                     ->end()
@@ -64,11 +80,27 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->arrayNode('directories')
                     ->normalizeKeys(false)
-                    ->useAttributeAsKey('name')
-                    ->normalizeKeys(false)
+                    ->beforeNormalization()
+                        ->always(function ($v) {
+                            // If it's already a list format (numeric keys), return as-is
+                            if (isset($v[0]) || empty($v)) {
+                                return $v;
+                            }
+
+                            // Convert map format to list format
+                            // From: ['path/to/dir' => ['output' => 'out/', 'requireAnnotation' => false]]
+                            // To: [['path' => 'path/to/dir', 'output' => 'out/', 'requireAnnotation' => false]]
+                            $normalized = [];
+                            foreach ($v as $path => $config) {
+                                $normalized[] = array_merge(['path' => $path], $config ?? []);
+                            }
+                            return $normalized;
+                        })
+                    ->end()
                     ->arrayPrototype()
                         ->normalizeKeys(false)
                         ->children()
+                            ->scalarNode('path')->isRequired()->end()
                             ->scalarNode('output')->end()
                             ->booleanNode('requireAnnotation')->defaultFalse()->end()
                         ->end()

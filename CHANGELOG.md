@@ -1,6 +1,12 @@
 Changelog
 ======
 
+# 2.2.1
+
+## Fixed
+
+- Fix directory processing when `singleFileMode: true` is enabled
+
 # 2.2.0
 
 - Add PHP 8.1+ enum support with new `#[TypeScript]` attribute

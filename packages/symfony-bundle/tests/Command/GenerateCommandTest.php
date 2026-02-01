@@ -21,7 +21,7 @@ class GenerateCommandTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->outputDir = sys_get_temp_dir() . '/php-to-typescript-test-' . uniqid();
+        $this->outputDir = sys_get_temp_dir() . '/php-to-typescript-test-' . uniqid('', true);
         $this->fs = new Filesystem();
         $this->fs->mkdir($this->outputDir);
 
@@ -450,5 +450,49 @@ class GenerateCommandTest extends TestCase
         $output = $commandTester->getDisplay();
         $this->assertStringContainsString('Generating single file:', $output);
         $this->assertStringContainsString('...done!', $output);
+    }
+
+    public function testSingleFileModeIncludesAdditionalDirectoriesWhenRequireAnnotationIsFalse(): void
+    {
+        $inputDir = __DIR__ . '/../Fixtures/';
+
+        $additionalDirectories = [
+            // Process fixtures as an "external" directory without requiring the attribute
+            $inputDir => [
+                'output' => 'external/',
+                'requireAnnotation' => false,
+            ],
+        ];
+
+        $command = new GenerateCommand(
+            $this->parserService,
+            $this->fs,
+            [],
+            '',
+            '',
+            2,
+            false,
+            $inputDir,
+            $this->outputDir,
+            $additionalDirectories,
+            false,
+            true, // export
+            false,
+            true, // singleFileMode
+            'all-types.ts'
+        );
+
+        $application = new Application();
+        $application->add($command);
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([]);
+
+        $this->assertFileExists($this->outputDir . '/all-types.ts');
+
+        $content = file_get_contents($this->outputDir . '/all-types.ts');
+
+        // This class has NO TypeScript attribute
+        $this->assertStringContainsString('ExternalNoAttribute', $content);
     }
 }

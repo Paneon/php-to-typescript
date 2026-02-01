@@ -1,6 +1,19 @@
 Changelog
 ======
 
+# 2.2.1
+
+## Fixed
+
+- Fix directory processing when `singleFileMode: true` is enabled
+
+## Improved
+
+- Configuration now accepts both YAML map and list syntax for `interfaces` and `directories`
+  - Map syntax: `'path/to/file': { output: 'out/' }`
+  - List syntax: `- { path: 'path/to/file', output: 'out/' }`
+  - Both syntaxes produce identical results
+
 # 2.2.0
 
 ## Added

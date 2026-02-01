@@ -26,11 +26,17 @@ class PhpToTypeScriptExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
+        // Convert list format back to map format for backward compatibility
+        // From: [['path' => 'path/to/file', 'output' => 'out/']]
+        // To: ['path/to/file' => ['output' => 'out/']]
+        $interfaces = $this->convertListToMap($config['interfaces']);
+        $directories = $this->convertListToMap($config['directories']);
+
         $container->setParameter('type_script_generator.indentation', $config['indentation']);
         $container->setParameter('type_script_generator.prefix', $config['prefix']);
         $container->setParameter('type_script_generator.suffix', $config['suffix']);
-        $container->setParameter('type_script_generator.interfaces', $config['interfaces']);
-        $container->setParameter('type_script_generator.directories', $config['directories']);
+        $container->setParameter('type_script_generator.interfaces', $interfaces);
+        $container->setParameter('type_script_generator.directories', $directories);
         $container->setParameter('type_script_generator.inputDirectory', $config['inputDirectory']);
         $container->setParameter('type_script_generator.outputDirectory', $config['outputDirectory']);
         $container->setParameter('type_script_generator.nullable', $config['nullable']);
@@ -42,5 +48,22 @@ class PhpToTypeScriptExtension extends Extension
 
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yaml');
+    }
+
+    /**
+     * Convert normalized list format to map format for backward compatibility.
+     *
+     * @param array $list List format: [['path' => 'path/to/file', 'output' => 'out/', ...], ...]
+     * @return array Map format: ['path/to/file' => ['output' => 'out/', ...], ...]
+     */
+    private function convertListToMap(array $list): array
+    {
+        $map = [];
+        foreach ($list as $item) {
+            $path = $item['path'];
+            unset($item['path']);
+            $map[$path] = $item;
+        }
+        return $map;
     }
 }
