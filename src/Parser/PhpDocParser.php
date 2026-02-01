@@ -60,6 +60,9 @@ class PhpDocParser
 
     public function getTypeEquivalent(string $phpType, $includeTypeNullable = false): ?string
     {
+        // Strip leading backslash from fully qualified type names
+        $phpType = ltrim($phpType, '\\');
+
         switch (strtolower($phpType)) {
             case 'null':
                 if ($includeTypeNullable) {
@@ -76,7 +79,7 @@ class PhpDocParser
                 return 'number';
             case 'string':
             case 'datetime':
-            case '\datetime':
+            case 'datetimeimmutable':
                 return 'string';
             case 'bool':
             case 'boolean':

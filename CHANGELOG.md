@@ -6,6 +6,8 @@ Changelog
 ## Fixed
 
 - Fix directory processing when `singleFileMode: true` is enabled
+- Strip leading backslashes from fully qualified type names in PHPDoc and PHP 8 native types (e.g., `@var \DateTimeImmutable` and `public \DateTime $prop` now correctly convert to `string`)
+- Fix prefix incorrectly applied to TypeScript literal types (`false`, `true`) in union types
 
 # 2.2.0
 

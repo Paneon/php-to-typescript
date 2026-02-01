@@ -63,6 +63,8 @@ class DeclareInterfaceProperty
 
         switch (strtolower($type)) {
             case 'null':
+            case 'false':
+            case 'true':
             case 'array':
             case 'any':
             case 'number':
