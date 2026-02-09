@@ -495,4 +495,52 @@ class GenerateCommandTest extends TestCase
         // This class has NO TypeScript attribute
         $this->assertStringContainsString('ExternalNoAttribute', $content);
     }
+
+    public function testSingleFileModeDoesNotDuplicateFilesFromAdditionalDirectories(): void
+    {
+        $inputDir = __DIR__ . '/../Fixtures/';
+
+        // Simulate a setup where the same directory is both the input and an additional directory
+        $additionalDirectories = [
+            $inputDir => [
+                'output' => 'enums/',
+                'requireAnnotation' => true,
+            ],
+        ];
+
+        $command = new GenerateCommand(
+            $this->parserService,
+            $this->fs,
+            [],
+            '',
+            '',
+            2,
+            false,
+            $inputDir,
+            $this->outputDir,
+            $additionalDirectories,
+            false,
+            true, // export
+            false,
+            true, // singleFileMode
+            'all-types.ts'
+        );
+
+        $application = new Application();
+        $application->add($command);
+
+        $commandTester = new CommandTester($command);
+        $commandTester->execute([]);
+
+        $this->assertFileExists($this->outputDir . '/all-types.ts');
+
+        $content = file_get_contents($this->outputDir . '/all-types.ts');
+
+        // The enum declaration should appear exactly once, not duplicated
+        $this->assertSame(
+            1,
+            substr_count($content, 'enum SampleEnum'),
+            'SampleEnum declaration should appear exactly once in single file output'
+        );
+    }
 }

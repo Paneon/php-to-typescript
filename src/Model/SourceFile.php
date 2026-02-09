@@ -12,6 +12,7 @@ class SourceFile
         public readonly string $className,
         public readonly string $sourceFile,
         public readonly string $targetDirectory,
+        public readonly bool $requireAnnotation = true,
     ) {}
 
     /**
