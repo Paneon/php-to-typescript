@@ -51,9 +51,7 @@ jobs:
 
           # If no release notes found, use a default message
           if [ -z "$RELEASE_NOTES" ]; then
-            RELEASE_NOTES="Release $VERSION_NUMBER
-
-See the main repository for release notes: https://github.com/Paneon/php-to-typescript/releases/tag/$VERSION"
+            RELEASE_NOTES=$(printf "Release %s\n\nSee the main repository for release notes: https://github.com/Paneon/php-to-typescript/releases/tag/%s" "$VERSION_NUMBER" "$VERSION")
           fi
 
           # Create release on the split repository
