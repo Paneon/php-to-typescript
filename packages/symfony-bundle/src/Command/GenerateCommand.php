@@ -240,7 +240,7 @@ class GenerateCommand extends Command
         $className = $this->getFullyQualifiedClassName($stmts, $sourceFileName);
 
         if ($className !== null) {
-            $collection->addFromArray($className, $sourceFileName, rtrim($targetDirectory, DIRECTORY_SEPARATOR));
+            $collection->addFromArray($className, $sourceFileName, rtrim($targetDirectory, DIRECTORY_SEPARATOR), $requireAnnotation);
         }
     }
 
@@ -319,40 +319,13 @@ class GenerateCommand extends Command
 
         $output->writeln('Generating single file: ' . $targetFile);
 
-        // Process all files and collect content
+        // Process all files from the collection (includes input directory, additional directories, and additional files)
         foreach ($sourceFileCollection as $sourceFile) {
-            $content = $this->parserService->getContent($sourceFile->sourceFile, true);
+            $content = $this->parserService->getContent($sourceFile->sourceFile, $sourceFile->requireAnnotation);
 
             if ($content) {
                 $allContent[] = $content;
                 $output->writeln('- ' . $sourceFile->sourceFile);
-            }
-        }
-
-        // Process additional directories
-        if ($this->additionalDirectories) {
-            foreach ($this->additionalDirectories as $fromDir => $configArray) {
-                $fromDir = realpath($fromDir) ?: $fromDir;
-                $files = $this->getPhpFiles($fromDir);
-
-                foreach ($files as $sourceFileName) {
-                    $content = $this->parserService->getContent($sourceFileName, $configArray['requireAnnotation']);
-
-                    if ($content) {
-                        $allContent[] = $content;
-                        $output->writeln('- ' . $sourceFileName);
-                    }
-                }
-            }
-        }
-
-        // Process additional files (they don't require annotation)
-        foreach ($this->additionalFiles as $additionalFile => $configArray) {
-            $content = $this->parserService->getContent($additionalFile, false);
-
-            if ($content) {
-                $allContent[] = $content;
-                $output->writeln('- ' . $additionalFile);
             }
         }
 

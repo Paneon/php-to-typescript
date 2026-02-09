@@ -24,9 +24,9 @@ class SourceFileCollection implements IteratorAggregate, Countable
         return $this;
     }
 
-    public function addFromArray(string $className, string $sourceFile, string $targetDirectory): self
+    public function addFromArray(string $className, string $sourceFile, string $targetDirectory, bool $requireAnnotation = true): self
     {
-        return $this->add(new SourceFile($className, $sourceFile, $targetDirectory));
+        return $this->add(new SourceFile($className, $sourceFile, $targetDirectory, $requireAnnotation));
     }
 
     /**

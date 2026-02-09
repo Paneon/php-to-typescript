@@ -30,3 +30,34 @@ jobs:
           tag: ${{ github.ref_name }}
           user_name: 'git-split[bot]'
           user_email: 'git-split[bot]@users.noreply.github.com'
+
+      # 3. Create GitHub release on split repo (only for tags)
+      - name: Create GitHub Release on Split Repo
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.BUNDLE_SPLIT_TOKEN }}
+        run: |
+          # Extract version from tag (remove 'v' prefix if present)
+          VERSION="${{ github.ref_name }}"
+          VERSION_NUMBER="${VERSION#v}"
+
+          # Extract release notes from CHANGELOG.md
+          # Find the section for this version and extract until the next version header
+          RELEASE_NOTES=$(awk "
+            /^# ${VERSION_NUMBER}\$/ { found=1; next }
+            found && /^# [0-9]/ { exit }
+            found { print }
+          " CHANGELOG.md | sed '/^[[:space:]]*$/d')
+
+          # If no release notes found, use a default message
+          if [ -z "$RELEASE_NOTES" ]; then
+            RELEASE_NOTES="Release $VERSION_NUMBER
+
+See the main repository for release notes: https://github.com/Paneon/php-to-typescript/releases/tag/$VERSION"
+          fi
+
+          # Create release on the split repository
+          gh release create "$VERSION" \
+            --repo Paneon/php-to-typescript-bundle \
+            --title "Symfony Bundle $VERSION" \
+            --notes "$RELEASE_NOTES"

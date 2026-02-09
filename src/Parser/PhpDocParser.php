@@ -13,10 +13,17 @@ class PhpDocParser
         $type = self::PROPERTY_TYPE_VARIABLE,
         $includeTypeNullable = false
     ): string {
-        $varRegex = '/@var\s+(?P<var>[^\s*]+)?/';
-        $methodRegex = '/@return\s+(?P<var>[^\s*]+)?/';
-        $typeRegex = '/(?P<type>[^\[\]\s]+)(?P<array>\[\])?/i';
-        $psalmTypeRegex = '/array\<(?P<psalmType>[^\s*]+)?\>/i';
+        // Reusable pattern fragments
+        $typeName    = '[^\s*<>|]+';          // base type name, e.g. "array", "string", "SomeClass"
+        $genericArgs = '(?:<[^>]*>)?';        // optional generic args, e.g. "<string, int>"
+        $arraySuffix = '(?:\[\])?';           // optional array brackets, e.g. "[]"
+        $unionSep    = '(?:\|(?![\s*]))?';    // optional union separator "|" (not followed by space/*)
+        $typeExpr    = "(?:{$typeName}{$genericArgs}{$arraySuffix}{$unionSep})+";
+
+        $varRegex       = "/@var\s+(?P<var>{$typeExpr})/";
+        $methodRegex    = "/@return\s+(?P<var>{$typeExpr})/";
+        $typeRegex      = '/(?P<type>[^\[\]\s]+)(?P<array>\[\])?/i';
+        $psalmTypeRegex = '/array\<(?P<psalmType>[^>]+)\>/i';
 
         if (empty($phpDoc)) {
             return 'any';
@@ -33,9 +40,22 @@ class PhpDocParser
                 $tsType = $phpType;
 
                 if (preg_match($psalmTypeRegex, $phpType, $typeMatch)) {
-                    $tsType = $this->getTypeEquivalent($typeMatch['psalmType'], $includeTypeNullable);
-                    if ($tsType !== null) {
-                        $tsType .= '[]';
+                    $psalmType = trim($typeMatch['psalmType']);
+
+                    if (str_contains($psalmType, ',')) {
+                        // Key-value map: array<K, V> → Record<KeyTS, ValueTS>
+                        $parts = array_map('trim', explode(',', $psalmType, 2));
+                        $keyTs = $this->getTypeEquivalent($parts[0], $includeTypeNullable);
+                        $valueTs = $this->getTypeEquivalent($parts[1], $includeTypeNullable);
+                        $tsType = ($keyTs !== null && $valueTs !== null)
+                            ? "Record<{$keyTs}, {$valueTs}>"
+                            : null;
+                    } else {
+                        // Single type: array<V> → V[]
+                        $tsType = $this->getTypeEquivalent($psalmType, $includeTypeNullable);
+                        if ($tsType !== null) {
+                            $tsType .= '[]';
+                        }
                     }
                 } else if (preg_match($typeRegex, $phpType, $typeMatch)) {
                     $tsType = $this->getTypeEquivalent($typeMatch['type'], $includeTypeNullable);
