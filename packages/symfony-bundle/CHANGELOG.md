@@ -1,10 +1,11 @@
 Changelog
 ======
 
-# 2.2.3 (unreleased)
+# 2.2.3
 
 ## Fixed
 
+- Fix PHPDoc generic array parsing: `array<string, int>` now correctly maps to `Record<string, number>` instead of being truncated at the space after the comma
 - Fix duplicate output in single file mode when files from additional directories were already included via the source file collection
 
 # 2.2.2
