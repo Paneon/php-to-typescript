@@ -7,6 +7,9 @@ install-core:
 
 install-symfony:
 	cd packages/symfony-bundle && composer install
+	@echo "Overlaying local core package source..."
+	rm -rf packages/symfony-bundle/vendor/paneon/php-to-typescript/src
+	cp -r src packages/symfony-bundle/vendor/paneon/php-to-typescript/src
 
 test: test-all
 
