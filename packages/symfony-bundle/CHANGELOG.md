@@ -1,6 +1,12 @@
 Changelog
 ======
 
+# 2.2.3 (unreleased)
+
+## Fixed
+
+- Fix duplicate output in single file mode when files from additional directories were already included via the source file collection
+
 # 2.2.2
 
 ## Fixed
