@@ -43,11 +43,11 @@ jobs:
 
           # Extract release notes from CHANGELOG.md
           # Find the section for this version and extract until the next version header
-          RELEASE_NOTES=$(awk "
-            /^# ${VERSION_NUMBER}\$/ { found=1; next }
+          RELEASE_NOTES=$(awk -v ver="$VERSION_NUMBER" '
+            $0 ~ "^# " ver "$" { found=1; next }
             found && /^# [0-9]/ { exit }
             found { print }
-          " CHANGELOG.md | sed '/^[[:space:]]*$/d')
+          ' CHANGELOG.md | sed '/^[[:space:]]*$/d')
 
           # If no release notes found, use a default message
           if [ -z "$RELEASE_NOTES" ]; then
