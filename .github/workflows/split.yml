@@ -31,8 +31,8 @@ jobs:
           user_name: 'git-split[bot]'
           user_email: 'git-split[bot]@users.noreply.github.com'
 
-      # 3. Create GitHub release on split repo (only for tags)
-      - name: Create GitHub Release on Split Repo
+      # 3. Create GitHub releases (only for tags)
+      - name: Create GitHub Releases
         if: startsWith(github.ref, 'refs/tags/')
         env:
           GH_TOKEN: ${{ secrets.BUNDLE_SPLIT_TOKEN }}
@@ -41,21 +41,36 @@ jobs:
           VERSION="${{ github.ref_name }}"
           VERSION_NUMBER="${VERSION#v}"
 
-          # Extract release notes from CHANGELOG.md
-          # Find the section for this version and extract until the next version header
+          # Extract release notes from core CHANGELOG.md
           RELEASE_NOTES=$(awk -v ver="$VERSION_NUMBER" '
             $0 ~ "^# " ver "$" { found=1; next }
             found && /^# [0-9]/ { exit }
             found { print }
           ' CHANGELOG.md | sed '/^[[:space:]]*$/d')
 
-          # If no release notes found, use a default message
           if [ -z "$RELEASE_NOTES" ]; then
-            RELEASE_NOTES=$(printf "Release %s\n\nSee the main repository for release notes: https://github.com/Paneon/php-to-typescript/releases/tag/%s" "$VERSION_NUMBER" "$VERSION")
+            RELEASE_NOTES=$(printf "Release %s" "$VERSION_NUMBER")
+          fi
+
+          # Create release on the core repository
+          gh release create "$VERSION" \
+            --repo Paneon/php-to-typescript \
+            --title "$VERSION" \
+            --notes "$RELEASE_NOTES"
+
+          # Extract release notes from bundle CHANGELOG.md
+          BUNDLE_NOTES=$(awk -v ver="$VERSION_NUMBER" '
+            $0 ~ "^# " ver "$" { found=1; next }
+            found && /^# [0-9]/ { exit }
+            found { print }
+          ' packages/symfony-bundle/CHANGELOG.md | sed '/^[[:space:]]*$/d')
+
+          if [ -z "$BUNDLE_NOTES" ]; then
+            BUNDLE_NOTES=$(printf "Release %s\n\nSee the main repository for release notes: https://github.com/Paneon/php-to-typescript/releases/tag/%s" "$VERSION_NUMBER" "$VERSION")
           fi
 
           # Create release on the split repository
           gh release create "$VERSION" \
             --repo Paneon/php-to-typescript-bundle \
             --title "Symfony Bundle $VERSION" \
-            --notes "$RELEASE_NOTES"
+            --notes "$BUNDLE_NOTES"
