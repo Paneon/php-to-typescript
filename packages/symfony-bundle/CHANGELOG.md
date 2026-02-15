@@ -1,6 +1,14 @@
 Changelog
 ======
 
+# 2.3.0
+
+## Added
+
+- Add `aliasMap` configuration option to override built-in PHP-to-TypeScript type mappings
+  - Example: `aliasMap: { DateTimeImmutable: number, 'Symfony\Component\Uid\Uuid': string }`
+  - Alias map takes highest priority over built-in mappings
+
 # 2.2.3
 
 ## Fixed
