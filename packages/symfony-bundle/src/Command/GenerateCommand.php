@@ -37,6 +37,7 @@ class GenerateCommand extends Command
         protected bool $useEnumUnionType = false,
         protected bool $singleFileMode = false,
         protected string $singleFileOutput = 'types.ts',
+        protected array $aliasMap = [],
     ) {
         parent::__construct();
 
@@ -60,6 +61,9 @@ class GenerateCommand extends Command
         }
         if ($useEnumUnionType) {
             $this->parserService->setUseEnumUnionType($useEnumUnionType);
+        }
+        if (!empty($aliasMap)) {
+            $this->parserService->setAliasMap($aliasMap);
         }
     }
 

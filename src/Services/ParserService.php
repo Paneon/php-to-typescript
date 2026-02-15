@@ -307,6 +307,12 @@ class ParserService
         return $this;
     }
 
+    public function setAliasMap(array $aliasMap): ParserService
+    {
+        $this->docParser->setAliasMap($aliasMap);
+        return $this;
+    }
+
     public function setUseType(bool $useType): ParserService
     {
         $this->useType = $useType;

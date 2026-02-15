@@ -45,6 +45,7 @@ class PhpToTypeScriptExtension extends Extension
         $container->setParameter('type_script_generator.useEnumUnionType', $config['useEnumUnionType']);
         $container->setParameter('type_script_generator.singleFileMode', $config['singleFileMode']);
         $container->setParameter('type_script_generator.singleFileOutput', $config['singleFileOutput']);
+        $container->setParameter('type_script_generator.aliasMap', $config['aliasMap']);
 
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yaml');

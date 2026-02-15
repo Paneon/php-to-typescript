@@ -8,6 +8,14 @@ class PhpDocParser
     public const PROPERTY_TYPE_VARIABLE = 'VARIABLE';
     public const PROPERTY_TYPE_METHOD = 'METHOD';
 
+    /** @var array<string, string> Maps PHP FQCNs to TypeScript types */
+    private array $aliasMap = [];
+
+    public function setAliasMap(array $aliasMap): void
+    {
+        $this->aliasMap = $aliasMap;
+    }
+
     public function parseDocComment(
         string $phpDoc,
         $type = self::PROPERTY_TYPE_VARIABLE,
@@ -82,6 +90,11 @@ class PhpDocParser
     {
         // Strip leading backslash from fully qualified type names
         $phpType = ltrim($phpType, '\\');
+
+        // Check alias map first (case-sensitive, highest priority)
+        if (isset($this->aliasMap[$phpType])) {
+            return $this->aliasMap[$phpType];
+        }
 
         switch (strtolower($phpType)) {
             case 'null':
