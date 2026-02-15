@@ -37,6 +37,11 @@ class Configuration implements ConfigurationInterface
                 ->booleanNode('useEnumUnionType')->defaultValue(false)->end()
                 ->booleanNode('singleFileMode')->defaultValue(false)->end()
                 ->scalarNode('singleFileOutput')->defaultValue('types.ts')->end()
+                ->arrayNode('aliasMap')
+                    ->useAttributeAsKey('name')
+                    ->scalarPrototype()->end()
+                    ->defaultValue([])
+                ->end()
             ->end();
     }
 

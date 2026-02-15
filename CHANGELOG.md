@@ -1,6 +1,15 @@
 Changelog
 ======
 
+# 2.3.0
+
+## Added
+
+- Add configurable type alias map to override built-in PHP-to-TypeScript type mappings
+  - `ParserService::setAliasMap(array $aliasMap)` to define custom FQCN-to-TypeScript mappings
+  - Alias map takes highest priority over built-in mappings (e.g., map `DateTimeImmutable` to `number` instead of `string`)
+  - Keys are matched case-sensitively without leading backslash
+
 # 2.2.3
 
 ## Fixed

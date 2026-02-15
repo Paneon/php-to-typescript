@@ -22,6 +22,7 @@ services:
         $useEnumUnionType: '%type_script_generator.useEnumUnionType%'
         $singleFileMode: '%type_script_generator.singleFileMode%'
         $singleFileOutput: '%type_script_generator.singleFileOutput%'
+        $aliasMap: '%type_script_generator.aliasMap%'
 
   Paneon\PhpToTypeScriptBundle\Command\GenerateCommandSingle:
       public: true
